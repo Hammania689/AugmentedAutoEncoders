@@ -1,0 +1,18 @@
+# Camera Dims
+Renderer.H = 128
+Renderer.W = 128
+
+Renderer.render_dims = (720, 540)
+#Renderer.K = [1075.65, 0, 720/2, 0, 1073.90, 540/2, 0, 0, 1]
+Renderer.K = [1075.65, 0, 360, 0, 1073.90, 270, 0, 0, 1]
+                
+# Distance is in millimeters
+Renderer.z_near = 0.01
+Renderer.z_far = 10.00
+
+Renderer.render_dist = 250
+
+produce_pose_samples.output_path = "../config/poses.json"
+Renderer.voc_path = "../data/VOC2012_images"
+
+Renderer.light_max_strength = 3
