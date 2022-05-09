@@ -27,7 +27,7 @@ class Renderer(object):
                  z_far: int=gin.REQUIRED,
                  render_dist: int=gin.REQUIRED,
                  voc_path: str=gin.REQUIRED,
-                 light_max_strength: float=gin.REQUIRED,
+                 light_strength: float=gin.REQUIRED,
                 ):
         """
         Class to produce images of objects from equivariant sampled poses 
@@ -70,8 +70,7 @@ class Renderer(object):
         scene = pyrender.Scene(bg_color=(0, 0, 0, 1))
 
         # Add light to scene
-        strength = np.random.ranf(1) * self.light_max_strength
-        light = pyrender.PointLight(color=np.ones(3), intensity=strength)
+        light = pyrender.PointLight(color=np.ones(3), intensity=self.light_strength)
         T_cam = np.eye(4)
 
         scene.add(light)
