@@ -1,5 +1,6 @@
 import gin
 import numpy as np
+from transforms3d.euler import euler2quat
 
 aae_paper_views = 92232
 step_size = np.floor(aae_paper_views ** (1/3)).astype(int)
@@ -14,8 +15,8 @@ def produce_pose_samples(
     poses = np.stack(np.meshgrid(*axis_steps))
 
     poses = poses.reshape(3, -1).T
+    poses = np.stack([euler2quat(*p) for p in poses])
     np.save(output_path, poses)
-
     return poses
 
 if __name__ == "__main__":

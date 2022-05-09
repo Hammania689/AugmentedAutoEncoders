@@ -8,7 +8,7 @@ import gin
 import numpy as np
 import pyrender
 import trimesh
-from transforms3d import euler
+from transforms3d import quaternions as quat
 
 from imgaug import augmenters as iaa
 
@@ -90,7 +90,7 @@ class Renderer(object):
         sample = np.random.randint(0, self.poses.shape[0], size=1)[0]
         cur_pose = self.poses[sample]
 
-        R = euler.euler2mat(*cur_pose)
+        R = quat.quat2mat(cur_pose)
         T_obj_in_cam[:3, :3] = R @ T_obj_in_cam[:3, :3]
         scene.add(obj, pose=T_obj_in_cam)
 
