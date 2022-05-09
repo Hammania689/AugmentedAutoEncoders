@@ -46,7 +46,7 @@ class Renderer(object):
         self._cam = pyrender.IntrinsicsCamera(FU, FV, U0, V0, 
                                               znear=z_near, zfar=z_far)
 
-        self._poses = produce_pose_samples()
+        self.poses = produce_pose_samples()
 
         self.voc_paths = list(Path(voc_path).rglob('*.jpg'))
         self.resize_dims = (self.H, self.W)
@@ -77,12 +77,7 @@ class Renderer(object):
         scene.add(self._cam, name="cam")
 
         # Load object and add it to the scene
-        # data_path = "../data/t_less/models_cad/obj_01.ply"
-        # data_path = "../data/tless_models/obj_01.ply"
-        data_path = "../data/models/obj_000001.ply"
-
-    
-        tmp_obj = trimesh.load(data_path)
+        tmp_obj = trimesh.load(self.data_path)
         obj = pyrender.Mesh.from_trimesh(tmp_obj)
 
         # Convert scale from millimeters to meters
@@ -92,8 +87,8 @@ class Renderer(object):
 
 
         # Sample pose and generate
-        sample = np.random.randint(0, self._poses.shape[0], size=1)[0]
-        cur_pose = self._poses[sample]
+        sample = np.random.randint(0, self.poses.shape[0], size=1)[0]
+        cur_pose = self.poses[sample]
 
         R = euler.euler2mat(*cur_pose)
         T_obj_in_cam[:3, :3] = R @ T_obj_in_cam[:3, :3]
@@ -120,12 +115,12 @@ class Renderer(object):
 
         # Delete scene and other items
         del scene
-        return (original, rgb_bg)
+        return (original, rgb_bg, cur_pose)
 
 
     def produce_batch_images(self, batch_size: int=32):
         data = [self._produce_image() for _ in range(batch_size)]
-        original, rgb_bg = zip(*data)
+        original, rgb_bg, poses = zip(*data)
 
         aug_rgb = self.seq(images=rgb_bg)
 
@@ -134,5 +129,5 @@ class Renderer(object):
             rgb_bg = np.squeeze(rgb_bg)
             aug_rbg = np.squeeze(aug_rgb)
 
-        return  aug_rgb, original
+        return  aug_rgb, original, poses
 
