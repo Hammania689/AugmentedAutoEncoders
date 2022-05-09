@@ -132,8 +132,8 @@ class Renderer(object):
 
         if batch_size == 1:
             original = np.squeeze(original)
-            np.squeeze(rgb_bg)
-            np.squeeze(aug_rgb)
+            rgb_bg = np.squeeze(rgb_bg)
+            aug_rbg = np.squeeze(aug_rgb)
 
         return  aug_rgb, original
 
