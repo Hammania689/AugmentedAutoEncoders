@@ -9,7 +9,6 @@ def produce_pose_samples(
         num_steps: int=step_size,
         output_path: str=gin.REQUIRED):
 
-    # intervals = np.linspace(0, 360, num_steps)
     intervals = np.deg2rad(np.linspace(-180, 180, num_steps))
     axis_steps = (intervals, intervals, intervals)
     poses = np.stack(np.meshgrid(*axis_steps))

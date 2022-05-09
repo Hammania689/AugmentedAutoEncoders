@@ -52,17 +52,6 @@ class Renderer(object):
         self.resize_dims = (self.H, self.W)
 
 
-        """
-        self.seq = iaa.Sequential([iaa.Sometimes(0.5, iaa.Affine(scale=(1.0, 1.2))),
-                                   iaa.Sometimes(0.5, iaa.CoarseDropout( p=0.2, size_percent=0.05) ),
-                                   iaa.Sometimes(0.5, iaa.GaussianBlur(1.2 * np.random.rand())),
-                                   iaa.Sometimes(0.5, iaa.Add((-25, 25), per_channel=0.3)),
-                                   iaa.Sometimes(0.3, iaa.Invert(0.2, per_channel=True)),
-                                   iaa.Sometimes(0.5, iaa.Multiply((0.6, 1.4), per_channel=0.5)),
-                                   iaa.Sometimes(0.5, iaa.Multiply((0.6, 1.4))),
-                                   iaa.Sometimes(0.5, iaa.ContrastNormalization((0.5, 2.2), per_channel=0.3))],
-                                   random_order=False)
-        """
 
         self.seq = iaa.Sequential([iaa.Sometimes(0.5, iaa.Affine(scale=(1.0, 1.2))),
                                    iaa.Sometimes(0.5, iaa.CoarseDropout( p=0.2, size_percent=0.05) ),
