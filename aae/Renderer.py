@@ -93,6 +93,7 @@ class Renderer(object):
         # data_path = "../data/tless_models/obj_01.ply"
         data_path = "../data/models/obj_000001.ply"
 
+    
         tmp_obj = trimesh.load(data_path)
         obj = pyrender.Mesh.from_trimesh(tmp_obj)
 
