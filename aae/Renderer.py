@@ -19,6 +19,7 @@ from aae.TransformUtils import produce_pose_samples
 @gin.configurable
 class Renderer(object):
     def __init__(self, 
+                 data_path: str, 
                  W: int=gin.REQUIRED,
                  H: int=gin.REQUIRED,
                  render_dims: Tuple=gin.REQUIRED,
@@ -27,8 +28,7 @@ class Renderer(object):
                  z_far: int=gin.REQUIRED,
                  render_dist: int=gin.REQUIRED,
                  voc_path: str=gin.REQUIRED,
-                 light_strength: float=gin.REQUIRED,
-                ):
+                 light_strength: float=gin.REQUIRED,):
         """
         Class to produce images of objects from equivariant sampled poses 
         """
