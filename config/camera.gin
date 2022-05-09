@@ -14,4 +14,4 @@ Renderer.render_dist = 250
 produce_pose_samples.output_path = "../config/poses.json"
 Renderer.voc_path = "../data/VOC2012_images"
 
-Renderer.light_strength = 1.5
+Renderer.light_strength = 1
