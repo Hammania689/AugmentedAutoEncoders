@@ -1,3 +1,5 @@
+from src.aae import Renderer
+
 # Camera Dims
 Renderer.H = 128
 Renderer.W = 128
@@ -11,7 +13,8 @@ Renderer.z_far = 10.00
 
 Renderer.render_dist = 250
 
-produce_pose_samples.output_path = "../config/poses.json"
-Renderer.voc_path = "../data/VOC2012_images"
+
+produce_pose_samples.output_path = "../config/poses.npy"
+Renderer.voc_path =  "../data/VOC2012_images"
 
 Renderer.light_strength = 1
