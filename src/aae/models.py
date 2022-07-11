@@ -136,9 +136,9 @@ class AugmentedAutoEncoder(nn.Module):
         self.opt.step()
 
         if cache_recon:
-            self.cached_recon = zip( aug.cpu().numpy(),
-                                     label.cpu().numpy(),
-                                     recon.detach().cpu().numpy())
+            self.cached_recon = list(zip( aug.cpu().numpy(),
+                                          label.cpu().numpy(),
+                                          recon.detach().cpu().numpy()))
 
     def reset_log(self):
         self.running_loss = []
