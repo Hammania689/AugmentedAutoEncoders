@@ -1,4 +1,7 @@
+from typing import List
+
 import gin.torch
+import numpy as np
 import torch
 import wandb
 from torch import nn, optim
@@ -60,6 +63,7 @@ class Encoder(nn.Module):
                                  nn.ReLU(),
                                  nn.Conv2d(256, 512, 5, stride=2, padding=2),
                                  nn.ReLU(),
+                                 View((512 * 8 * 8,)),
                                  nn.Linear(512 * 8 * 8, code_dim))
 
 
@@ -104,6 +108,7 @@ class AugmentedAutoEncoder(nn.Module):
         self.decoder = Decoder(code_dim)
 
         self.opt = opt(self.parameters(), lr)
+        self.loss = loss()
 
         self.reset_log()
 
@@ -127,10 +132,13 @@ class AugmentedAutoEncoder(nn.Module):
         recon_loss = self.loss(recon, label)
         self.running_loss.append(recon_loss)
 
-        self.opt.backward()
+        recon_loss.backward()
+        self.opt.step()
 
         if cache_recon:
-            self.cached_recon = zip([aug, label, recon])
+            self.cached_recon = zip( aug.cpu().numpy(),
+                                     label.cpu().numpy(),
+                                     recon.detach().cpu().numpy())
 
     def reset_log(self):
         self.running_loss = []
