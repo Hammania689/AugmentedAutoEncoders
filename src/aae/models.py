@@ -174,7 +174,7 @@ class AugmentedAutoEncoder(nn.Module):
         recon, _ = self.forward(aug)
 
         recon_loss = self.loss(recon, label)
-        self.running_loss.append(recon_loss)
+        self.running_loss.append(recon_loss.detach().cpu().numpy())
 
         recon_loss.backward()
         self.opt.step()
@@ -182,32 +182,98 @@ class AugmentedAutoEncoder(nn.Module):
         if cache_recon:
             self.cached_recon = list(zip( aug.cpu().numpy(),
                                           label.cpu().numpy(),
-                                          recon.detach().cpu().numpy()))
+                                          recon.detach().cpu().numpy()) )
 
-    def reset_log(self):
-        self.running_loss = []
-    
-    def produce_img_reel(self):
+            self.cached_fixed_recon = self.inference(self.fixed_batch, device)
+
+
+    def inference(self, data: torch.utils.data.DataLoader, device: Union[str, torch.device]) -> List[np.array]:
+
+        with torch.no_grad():
+
+            aug, label, _ = data
+            aug = aug.to(device)
+            label = label.to(device)
+
+            recon, _ = self.forward(aug)
+
+            return list(zip( aug.cpu().numpy(),
+                             label.cpu().numpy(),
+                             recon.detach().cpu().numpy()) )
+
+
+    def produce_img_reel(self, cached_res):
+        def combine_in_out_imgs(imgs: List[np.array], axis: int) -> np.array:
+            # NOTE: torch img dim (N, C, H, W) 
+            return np.concatenate(imgs, axis=axis)
+
+        # Combine single instances of (input, target, recon) pairs
+        im_reels = np.vstack([combine_in_out_imgs(s, -2) for s in cached_res])
+        combined_reel = combine_in_out_imgs(im_reels, -1)
         
-        pass
-        """
-        import numpy as np
+        # Create a 16 x 4 grid of images which contain all (input, target, recons) 
+        step = im_reels.shape[0] // 4
+        reel1, reel2 = combine_in_out_imgs(im_reels[:step], -1), combine_in_out_imgs(im_reels[step:step * 2], -1)
+        reel3, reel4 = combine_in_out_imgs(im_reels[step * 2: step * 3], -1), combine_in_out_imgs(im_reels[step*3:], -1)
 
-        reels = [np.concatenate(disp) for disp in self.cached_recon]
-        img_grid = np.vstack(reels)
+        split_reel = combine_in_out_imgs((reel1, reel2, reel3, reel4), -2)
 
-        for disp in self.cached_recon:
-
-            wandb.Im(np.concatenate(disp))
-            wandb.Image()
-        """
+        self.cached_im_reels = im_reels
+        return split_reel
 
 
-    def log_wandb(self, step):
+    def log(self, step: int, cache_recon: bool):
+        # Log the avg reconstruction loss and visualization of reconstructions 
+        avg_recon_loss = np.mean(self.running_loss)
+        cur_log = {'Training/AvgLoss': avg_recon_loss,
+                   'step': step}
 
-        log = {'Training/AvgLoss': np.mean(running_loss),
-               'Training/Reconstructions': produce_img_reel(),
-               'step': step}
+        if cache_recon:
+            cur_log.update(**{'Training/Random_Reconstruction_Visualizations': self.produce_img_reel(self.cached_recon),
+                              'Training/Fixed_Reconstructions_Visualizations': self.produce_img_reel(self.cached_fixed_recon)})
 
-        wandb.log(log)
 
+        self._comp_log = self._comp_log + (cur_log,)
+
+        print(f"Epoch {step:<4d} | Avg Recon Loss: {avg_recon_loss:4f}", file=self.print_sys_out)
+        
+        # If enabled then logged to wandb
+        if self.log_to_wandb:
+            # Properly encode the images
+            for k, v in cur_log.items():
+                if 'Visualizations' in k:
+                    title = k.split('/')[-1]
+                    title = " ".join(title.split('_'))
+                    capt = f"{title:<30} | Epoch: {step + 1:4d}"
+                    cur_log[k] = wandb.Image(v, caption=capt)
+
+            wandb.log(cur_log)
+            
+        # Reset the current running logs
+        self._reset_logs()
+
+        
+    def save_state(self, epoch: int, aux_dict: Optional[Dict]=None):
+        
+        # Create, (if necessary) update, and save ckpt object
+        states = {'model': self.state_dict(),
+                  'log': self._comp_log}
+        
+        if aux_dict:
+            states.update(**aux_dict)
+
+        ckpt_file = f"{self.output_dir}/{self.cad_model_name}_{epoch}.pth"
+
+        torch.save(states, ckpt_file)
+        print(f"Saved model to {ckpt_file}", file=self.print_sys_out)
+
+        # Save image reconstructions
+        def save_img_reel(reel, name, epoch):
+            path = f"{name}_{epoch}.png"
+            save_image(torch.from_numpy(reel), path)
+
+        rand_reel  = self.produce_img_reel(self.cached_recon)
+        fixed_reel = self.produce_img_reel(self.cached_fixed_recon)
+        
+        save_img_reel(rand_reel , f"{self.output_dir}/random", epoch)
+        save_img_reel(fixed_reel, f"{self.output_dir}/fixed", epoch)
