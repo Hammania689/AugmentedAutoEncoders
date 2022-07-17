@@ -100,6 +100,9 @@ class Decoder(nn.Module):
 @gin.configurable
 class AugmentedAutoEncoder(nn.Module):
     def __init__(self,
+                 fixed_batch: List,
+                 wandb_entity: Optional[str]=None,
+                 log_to_wandb: bool=False,
                  code_dim: int=gin.REQUIRED,
                  opt: torch.optim=gin.REQUIRED,
                  lr: float=gin.REQUIRED,
@@ -108,13 +111,50 @@ class AugmentedAutoEncoder(nn.Module):
 
         super(AugmentedAutoEncoder, self).__init__()
 
+        self.fixed_batch = fixed_batch
+        self.log_to_wandb = log_to_wandb
+
         self.encoder = Encoder(code_dim)
         self.decoder = Decoder(code_dim)
 
         self.opt = opt(self.parameters(), lr)
         self.loss = loss()
+        
+        self._comp_log = ()
+        self._reset_logs()
 
-        self.reset_log()
+        self._setup_output()
+        if log_to_wandb:
+            self._setup_wandb(wandb_entity)
+
+
+    def _setup_output(self):
+        try:
+            res = gin.get_bindings('dataset.OnlineRenderer')['cad_model_path']
+            self.cad_model_name = (Path(res).name).split('.')[0]
+            
+            self.output_dir = f"../results/checkpoints/{self.cad_model_name}/{time.time_ns()}"
+
+            # Create path if doesn't exist already
+            Path(self.output_dir).mkdir(parents=True, exist_ok=True)
+
+        except Exception as e:
+            raise Exception(e)
+
+        print_sys_out = f"{self.output_dir}/log.txt"
+        self.print_sys_out =  open(print_sys_out, 'a')
+        print(f"Training AAE for {self.cad_model_name:<40}\n{'='*100}", file=self.print_sys_out)
+
+
+    def _setup_wandb(self, entity: str):
+        wandb.init(project="AugmentedAutoEncoders-test", entity=entity)
+        wandb.watch(self)
+
+
+    def _reset_logs(self):
+        self.running_loss = []
+        self.cached_recon = []
+        self.cached_fixed_recon = []
 
 
     def forward(self, x):
