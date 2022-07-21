@@ -301,5 +301,5 @@ class AugmentedAutoEncoder(nn.Module):
         fixed_path = save_img_reel(fixed_reel, f"{self.output_dir}/fixed", epoch)
 
         if self.log_to_wandb:
-            [wandb.save() for p in [ckpt_file, rand_path, fixed_path, self.log_path]]
+            [wandb.save(p) for p in [ckpt_file, rand_path, fixed_path, self.log_path]]
 
