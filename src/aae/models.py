@@ -12,6 +12,28 @@ from tqdm import tqdm
 
 gin.external_configurable(torch.optim.Adam)
 
+def __print__(entry, f):
+    tqdm.write(entry, file=f)
+
+
+def get_path_to_config(gin_path)-> str:
+    cur_path = Path(__file__).absolute().parent
+
+    start_path = cur_path
+    query_path = tuple()
+    for p in Path(gin_path).parts:
+        if p == '..':
+            start_path = start_path.parent
+        elif p == '.':
+            continue
+        else:
+            query_path += (p,)
+
+    query_path = "/".join(query_path)
+    
+    query_path = start_path / query_path
+    return str(query_path)
+
 
 @gin.configurable
 class BootstrapedMSEloss(nn.Module):
@@ -130,10 +152,8 @@ class AugmentedAutoEncoder(nn.Module):
 
     def _setup_output(self):
         try:
-            res = gin.get_bindings('dataset.OnlineRenderer')['cad_model_path']
-            self.cad_model_name = (Path(res).name).split('.')[0]
-            
-            self.output_dir = f"../results/checkpoints/{self.cad_model_name}/{time.time_ns()}"
+            target_path = f"../../results/checkpoints/{self.cad_model_name}/{time.time_ns()}"
+            self.output_dir = get_path_to_config(target_path)
 
             # Create path if doesn't exist already
             Path(self.output_dir).mkdir(parents=True, exist_ok=True)
@@ -141,7 +161,8 @@ class AugmentedAutoEncoder(nn.Module):
         except Exception as e:
             raise Exception(e)
 
-        print_sys_out = f"{self.output_dir}/log.txt"
+        self.log_path = f"{self.output_dir}/log.txt"
+        print_sys_out = self.log_path
         self.print_sys_out =  open(print_sys_out, 'a')
         print(f"Training AAE for {self.cad_model_name:<40}\n{'='*100}", file=self.print_sys_out)
 
@@ -270,10 +291,15 @@ class AugmentedAutoEncoder(nn.Module):
         # Save image reconstructions
         def save_img_reel(reel, name, epoch):
             path = f"{name}_{epoch}.png"
-            save_image(torch.from_numpy(reel), path)
+            save_image(reel, path)
+            return path
 
         rand_reel  = self.produce_img_reel(self.cached_recon)
         fixed_reel = self.produce_img_reel(self.cached_fixed_recon)
         
-        save_img_reel(rand_reel , f"{self.output_dir}/random", epoch)
-        save_img_reel(fixed_reel, f"{self.output_dir}/fixed", epoch)
+        rand_path  = save_img_reel(rand_reel , f"{self.output_dir}/random", epoch)
+        fixed_path = save_img_reel(fixed_reel, f"{self.output_dir}/fixed", epoch)
+
+        if self.log_to_wandb:
+            [wandb.save() for p in [ckpt_file, rand_path, fixed_path, self.log_path]]
+
