@@ -188,7 +188,7 @@ class AugmentedAutoEncoder(nn.Module):
 
         self.opt.zero_grad()
         
-        aug, label, _ = data
+        aug, label = data
         aug = aug.to(device)
         label = label.to(device)
 
@@ -201,9 +201,9 @@ class AugmentedAutoEncoder(nn.Module):
         self.opt.step()
 
         if cache_recon:
-            self.cached_recon = list(zip( aug.cpu().numpy(),
-                                          label.cpu().numpy(),
-                                          recon.detach().cpu().numpy()) )
+            self.cached_recon = list(zip( aug.cpu(),
+                                          label.cpu(),
+                                          recon.detach().cpu()) )
 
             self.cached_fixed_recon = self.inference(self.fixed_batch, device)
 
@@ -212,35 +212,20 @@ class AugmentedAutoEncoder(nn.Module):
 
         with torch.no_grad():
 
-            aug, label, _ = data
+            aug, label = data
             aug = aug.to(device)
             label = label.to(device)
 
             recon, _ = self.forward(aug)
 
-            return list(zip( aug.cpu().numpy(),
-                             label.cpu().numpy(),
-                             recon.detach().cpu().numpy()) )
-
+            return list(zip( aug.cpu(),
+                             label.cpu(),
+                             recon.detach().cpu()) )
 
     def produce_img_reel(self, cached_res):
-        def combine_in_out_imgs(imgs: List[np.array], axis: int) -> np.array:
-            # NOTE: torch img dim (N, C, H, W) 
-            return np.concatenate(imgs, axis=axis)
-
-        # Combine single instances of (input, target, recon) pairs
-        im_reels = np.vstack([combine_in_out_imgs(s, -2) for s in cached_res])
-        combined_reel = combine_in_out_imgs(im_reels, -1)
-        
-        # Create a 16 x 4 grid of images which contain all (input, target, recons) 
-        step = im_reels.shape[0] // 4
-        reel1, reel2 = combine_in_out_imgs(im_reels[:step], -1), combine_in_out_imgs(im_reels[step:step * 2], -1)
-        reel3, reel4 = combine_in_out_imgs(im_reels[step * 2: step * 3], -1), combine_in_out_imgs(im_reels[step*3:], -1)
-
-        split_reel = combine_in_out_imgs((reel1, reel2, reel3, reel4), -2)
-
-        self.cached_im_reels = im_reels
-        return split_reel
+        reels           = [make_grid(list(r), normalize=True) for r in cached_res]
+        grid_of_reels   = make_grid(reels, nrows=64 // 4, normalize=True)
+        return grid_of_reels
 
 
     def log(self, step: int, cache_recon: bool):
