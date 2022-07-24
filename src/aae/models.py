@@ -303,3 +303,43 @@ class AugmentedAutoEncoder(nn.Module):
         if self.log_to_wandb:
             [wandb.save(p) for p in [ckpt_file, rand_path, fixed_path, self.log_path]]
 
+    # codebook generation and saving
+    def compute_codebook(self, code_dataset, batch_sz=500):
+            codebook_batch_size = batch_sz
+            code_generator = torch.utils.data.DataLoader(code_dataset, batch_size=codebook_batch_size, shuffle=False,
+                                                         num_workers=0)
+
+            step = 0
+            self = self.cuda()
+            self.eval()
+            n_single_object = int(len(code_dataset))
+            codebook_cpt = torch.zeros(n_single_object, self.code_dim).cuda()
+            codepose_cpt = torch.zeros(n_single_object, 7).cuda()
+
+            for inputs in tqdm(code_generator, desc="Generate Codebook"):
+                rgb, poses, _ = inputs
+
+                poses = poses.cuda()
+                rgb = rgb.cuda()
+
+                _, code = self.forward(rgb)
+                code    = code.detach().view(rgb.size(0), -1)
+
+                codebook_cpt[step * codebook_batch_size:step * codebook_batch_size + code.size(0), :] = code
+                codepose_cpt[step * codebook_batch_size:step * codebook_batch_size + code.size(0), :] = poses.squeeze(1)
+
+                step += 1
+
+            
+
+            target_path    = f"../../results/codebooks/{self.cad_model_name}.pth"
+            codebook_path  = get_path_to_config(target_path)
+
+            # Create path if doesn't exist already
+            Path(codebook_path.parent).mkdir(parents=True, exist_ok=True)
+
+            torch.save((codebook_cpt, codepose_cpt), codebook_path)
+            if self.log_to_wandb:
+                wandb.save(codebook_path)
+
+            print('code book is saved to {}'.format(codebook_path))
