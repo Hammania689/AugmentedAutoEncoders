@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import wandb
 from torch import nn, optim
-from torchvision.utils import save_image
+from torchvision.utils import save_image, make_grid
 from tqdm import tqdm
 
 gin.external_configurable(torch.optim.Adam)
@@ -129,12 +129,12 @@ class AugmentedAutoEncoder(nn.Module):
                  opt: torch.optim=gin.REQUIRED,
                  lr: float=gin.REQUIRED,
                  loss: nn.Module=gin.REQUIRED,
+                 cad_model_name: str=gin.REQUIRED,
                 ):
 
         super(AugmentedAutoEncoder, self).__init__()
 
-        self.fixed_batch = fixed_batch
-        self.log_to_wandb = log_to_wandb
+        self.__dict__.update(vars())
 
         self.encoder = Encoder(code_dim)
         self.decoder = Decoder(code_dim)
