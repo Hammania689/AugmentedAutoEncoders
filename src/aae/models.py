@@ -316,10 +316,10 @@ class AugmentedAutoEncoder(nn.Module):
                 step += 1
 
             target_path    = f"../../results/codebooks/{self.cad_model_name}.pth"
-            codebook_path  = Path(get_path_to_config(target_path))
+            codebook_path  = get_path_to_config(target_path)
 
             # Create path if doesn't exist already
-            codebook_path.parent.mkdir(parents=True, exist_ok=True)
+            Path(codebook_path.parent).mkdir(parents=True, exist_ok=True)
 
             torch.save((codebook_cpt, codepose_cpt), codebook_path)
             if self.log_to_wandb:
