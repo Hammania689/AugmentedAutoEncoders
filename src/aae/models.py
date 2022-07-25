@@ -35,6 +35,23 @@ def get_path_to_config(gin_path)-> str:
     return str(query_path)
 
 
+
+
+
+def pairwise_distances(self, x, y=None):
+    x_norm = (x ** 2).sum(1).view(-1, 1)
+    if y is not None:
+        y_t = torch.transpose(y, 0, 1)
+        y_norm = (y ** 2).sum(1).view(1, -1)
+    else:
+        y_t = torch.transpose(x, 0, 1)
+        y_norm = x_norm.view(1, -1)
+
+    dist = x_norm + y_norm - 2.0 * torch.mm(x, y_t)
+
+    return torch.clamp(dist, 0.0, np.inf)
+
+
 @gin.configurable
 class BootstrapedMSEloss(nn.Module):
     def __init__(self,
@@ -316,13 +333,27 @@ class AugmentedAutoEncoder(nn.Module):
                 step += 1
 
             target_path    = f"../../results/codebooks/{self.cad_model_name}.pth"
-            codebook_path  = get_path_to_config(target_path)
+            codebook_path  = Path(get_path_to_config(target_path))
 
             # Create path if doesn't exist already
-            Path(codebook_path.parent).mkdir(parents=True, exist_ok=True)
+            codebook_path.parent.mkdir(parents=True, exist_ok=True)
 
             torch.save((codebook_cpt, codepose_cpt), codebook_path)
             if self.log_to_wandb:
                 wandb.save(codebook_path)
 
             print('code book is saved to {}'.format(codebook_path))
+
+    def pairwise_cosine_distances(self, x, y, eps=1e-8):
+        """
+        :param x: batch of code from the encoder (batch size x code size)
+        :param y: code book (codebook size x code size)
+        :return: cosine similarity matrix (batch size x code book size)
+        """
+        dot_product = torch.mm(x, torch.t(y))
+        x_norm = torch.norm(x, 2, 1).unsqueeze(1)
+        y_norm = torch.norm(y, 2, 1).unsqueeze(1)
+        normalizer = torch.mm(x_norm, torch.t(y_norm))
+
+        return dot_product / normalizer.clamp(min=eps)
+

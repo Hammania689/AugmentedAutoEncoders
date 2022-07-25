@@ -1,0 +1,24 @@
+include './config/aae.gin'
+
+# from src.aae.models import AugmentedAutoEncoder
+# from src.aae.PoseEvaluator import PoseEvaluator
+
+AugmentedAutoEncoder.cad_model_name = "obj_01"
+AugmentedAutoEncoder.log_to_wandb = False
+
+evaluate_aae.sequence = 1
+evaluate_aae.ckpt_path = "./results/checkpoints/obj_01/1658454137570245788/obj_01_199.pth"
+evaluate_aae.path_to_codebook = "./results/codebooks/obj_01.pth"
+evaluate_aae.test_cfg_file = "./config/test/test_single_obj_list_tless/01.yml"
+evaluate_aae.pf_cfg_dir = "./config/test/TLess/"
+evaluate_aae.train_cfg_dir = "./config/train/TLess/01/"
+evaluate_aae.model_dir = "./data"
+evaluate_aae.dataset_dir = "./data/t_less/"
+
+
+PoseEvaluator.log_video.log_to_wandb = True
+PoseEvaluator.log_video.wandb_entity = "hammania689"
+
+
+
+

@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 import cv2
 import gin
@@ -32,6 +33,7 @@ class PoseEvaluator():
                  aae,
                  codebook,
                  obj_list,
+                 obj_idx,
                  cfg_list,
                  modality,
                  cad_model_dir,
@@ -41,6 +43,8 @@ class PoseEvaluator():
 
         self.__dict__.update(vars())
 
+        self.target_obj_cfg = self.cfg_list[0]
+        self.target_obj_idx = obj_idx
         # renderer
         self.intrinsics = np.array([[self.cfg_list[0].PF.FU, 0, self.cfg_list[0].PF.U0],
                                    [0, self.cfg_list[0].PF.FV, self.cfg_list[0].PF.V0],
@@ -74,31 +78,55 @@ class PoseEvaluator():
 
         self.log_max_sim = []
 
+        self.codebook_latent, self.codebook_poses = codebook
+
     @gin.configurable
     def log_video(self, img_list, log_to_wandb: str, wandb_entity: str):
+        import pdb; pdb.set_trace()
         [cv2.imwrite(f"{self.log_dir}/{index:<4d}.png", v) for index, v in enumerate(tqdm(img_list, desc="Writing images to disk"))]
 
         if log_to_wandb:
             vid = np.stack(img_list)
             wandb.init(project="AugmentedAutoEncoders-test", entity=wandb_entity)
-            wandb.log({"video": wandb.Video(vid.permute(0, 3, 1, 2), fps=15, format="mp4"),
-                       "gif":   wandb.Video(vid.permute(0, 3, 1, 2), fps=5, format="gif")})
+            wandb.log({"video": wandb.Video((vid * 255).transpose(0, 3, 1, 2), fps=15, format="mp4"),
+                       "gif":   wandb.Video((vid * 255).transpose(0, 3, 1, 2), fps=5, format="gif")})
 
 
     # initialize PoseRBPF
     def estimate_orientation(self, image, intrinsics):
-        _, query_latent = self.aae(image)
-        pw_latent = pairwise_cosine_distances(query_latent, self.codebook_latent).squeeze()
+
+        # crop the input image according to uv z
+        images_roi_cuda, scale_roi = get_rois_cuda(image.detach(), self.gt_uv, self.gt_t[2].reshape(1, -1),
+                                                         self.target_obj_cfg.PF.FU.reshape(1, -1),
+                                                         self.target_obj_cfg.PF.FV.reshape(1, -1),
+                                                         self.target_obj_cfg.TRAIN.RENDER_DIST[0])
+
+        # just crop in the center
+        roi_info = torch.zeros(images_roi_cuda.size(0), 5).float().cuda()
+        roi_info[:, 0] = torch.arange(images_roi_cuda.size(0))
+        roi_info[:, 1] = 128.0 - 128.0 / 2
+        roi_info[:, 2] = 128.0 - 128.0 / 2
+        roi_info[:, 3] = 128.0 + 128.0 / 2
+        roi_info[:, 4] = 128.0 + 128.0 / 2
+
+        # compute the codes
+        _, query_latent = self.aae.forward(images_roi_cuda)
+        query_latent = query_latent.detach()
+
+        # pw_latent = pairwise_cosine_distances(query_latent, self.codebook_latent).squeeze()
+        pw_latent = self.aae.pairwise_cosine_distances(query_latent, self.codebook_latent).squeeze()
         matching_idx = torch.argmax(pw_latent)
-        self.sim_rgb = pw_latent[matching_idx]
-        self.rot_bar = quat2mat(self.codebook_poses[matching_idx])
+        self.cur_rgb_sim = pw_latent[matching_idx]
+        self.rot_bar = quat2mat(self.codebook_poses[matching_idx][3:].cpu())
 
         # compute roi
+        """
         pose = np.zeros((7,), dtype=np.float32)
         pose[4:] = self.trans_bar
         pose[:4] = mat2quat(self.rot_bar)
         points = self.points_list[self.target_obj_idx]
-        box = self.compute_box(pose, points)
+        # box = self.compute_box(pose, points)
+        """
 
     
     def display_result(self, step, steps):
@@ -217,20 +245,20 @@ class PoseEvaluator():
 
 
     def display_overall_result(self):
-        print('filter trans mean error = ', np.mean(np.asarray(self.log_err_t)))
-        print('filter trans RMSE (x) = ', np.sqrt(np.mean(np.asarray(self.log_err_tx) ** 2)) * 1000)
-        print('filter trans RMSE (y) = ', np.sqrt(np.mean(np.asarray(self.log_err_ty) ** 2)) * 1000)
-        print('filter trans RMSE (z) = ', np.sqrt(np.mean(np.asarray(self.log_err_tz) ** 2)) * 1000)
-        print('filter rot RMSE (x) = ', np.sqrt(np.mean(np.asarray(self.log_err_rx) ** 2)) * 57.3)
-        print('filter rot RMSE (y) = ', np.sqrt(np.mean(np.asarray(self.log_err_ry) ** 2)) * 57.3)
-        print('filter rot RMSE (z) = ', np.sqrt(np.mean(np.asarray(self.log_err_rz) ** 2)) * 57.3)
-        print('filter rot mean error = ', np.mean(np.asarray(self.log_err_r)))
+        print('trans mean error = ', np.mean(np.asarray(self.log_err_t)))
+        print('trans RMSE (x) = ', np.sqrt(np.mean(np.asarray(self.log_err_tx) ** 2)) * 1000)
+        print('trans RMSE (y) = ', np.sqrt(np.mean(np.asarray(self.log_err_ty) ** 2)) * 1000)
+        print('trans RMSE (z) = ', np.sqrt(np.mean(np.asarray(self.log_err_tz) ** 2)) * 1000)
+        print('rot RMSE (x) = ', np.sqrt(np.mean(np.asarray(self.log_err_rx) ** 2)) * 57.3)
+        print('rot RMSE (y) = ', np.sqrt(np.mean(np.asarray(self.log_err_ry) ** 2)) * 57.3)
+        print('rot RMSE (z) = ', np.sqrt(np.mean(np.asarray(self.log_err_rz) ** 2)) * 57.3)
+        print('rot mean error = ', np.mean(np.asarray(self.log_err_r)))
 
 
     def eval_dataset(self, val_dataset, sequence, show_vis=True):
             self.log_err_r = []
             self.log_err_t = []
-            self.log_dir = str(Path(self.log_dir) / 'Eval' / str(time.time_ns))
+            self.log_dir = str(Path(self.log_dir) / 'Eval' / str(time.time_ns()))
             if not os.path.exists(self.log_dir):
                 os.makedirs(self.log_dir)
 
@@ -239,8 +267,8 @@ class PoseEvaluator():
             steps = len(val_dataset)
             step = 0
 
-            video = []
-            for inputs in enumerate(val_generator, desc=f"Evaluation of {val_dataset.dataset_type}"):
+            vis_img_list = []
+            for inputs in tqdm(val_generator, desc=f"Evaluation of {val_dataset.dataset_type}"):
                 if val_dataset.dataset_type == 'tless':
                     images, depths, poses_gt, intrinsics, class_mask, \
                     file_name, _, bbox = inputs
@@ -264,13 +292,13 @@ class PoseEvaluator():
                     if gt_center.shape[0] == 1:
                         gt_center = gt_center[0]
                     gt_center = gt_center / gt_center[2]
-                    self.gt_uv[:2] = gt_center[:2]
+                    self.gt_uv = gt_center[:2]
                     self.gt_z = self.gt_t[2]
 
 
                     # Note: we are only predicitng orientation estimates
                     self.trans_bar = self.gt_t
-                    self.uv_bar[:2] = self.gt_uv
+                    self.uv_bar = self.gt_uv
                 else:
                     print('*** INCORRECT DATASET SETTING! ***')
                     break
@@ -286,10 +314,7 @@ class PoseEvaluator():
                 time_start = time.time()
 
                 self.estimate_orientation(images[0].detach(),
-                                         self.data_intrinsics,
-                                         self.gt_uv[:2], 
-                                         self.target_obj_cfg.PF.N_INIT,
-                                         depth=depth_data)
+                                         self.data_intrinsics)
                 
                 torch.cuda.synchronize()
                 time_elapse = time.time() - time_start
@@ -310,7 +335,7 @@ class PoseEvaluator():
                     image_est_disp = image_est_render[0].permute(1, 2, 0).cpu().numpy()
                     image_disp = 0.4 * image_disp + 0.6 * image_est_disp
 
-                    video.append(image_disp)
+                    vis_img_list.append(image_disp)
 
 
                 if step == steps-1:
@@ -318,4 +343,4 @@ class PoseEvaluator():
                 step += 1
 
             self.display_overall_result()
-            self.log_video()
+            self.log_video(vis_img_list)
