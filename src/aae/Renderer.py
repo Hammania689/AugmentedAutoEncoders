@@ -46,7 +46,7 @@ class Renderer(object):
         self._cam = pyrender.IntrinsicsCamera(FU, FV, U0, V0, 
                                               znear=z_near, zfar=z_far)
 
-        self.poses = produce_pose_samples()
+        self.poses = produce_pose_samples()[:, 3:]
 
         self.voc_paths = list(Path(voc_path).rglob('*.jpg'))
         self.resize_dims = (self.H, self.W)
