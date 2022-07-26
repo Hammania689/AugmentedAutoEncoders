@@ -6,6 +6,7 @@ import gin
 import torch
 import wandb
 from tqdm import tqdm
+from torchvision.utils import save_image, make_grid
 
 from src.datasets.render_wrapper import *
 
@@ -26,6 +27,9 @@ def get_abs_from_relative(gin_path)-> str:
     
     query_path = start_path / query_path
     return str(query_path)
+
+np.random.seed(42)
+seeded_colors = np.random.randint(0, 256, 3) / 255
 
 class PoseEvaluator():
 
@@ -61,7 +65,7 @@ class PoseEvaluator():
         self.cos_sim = nn.CosineSimilarity(dim=1, eps=1e-6)
 
         # for logging
-        self.log_dir = get_abs_from_relative('./result')
+        self.log_dir = get_abs_from_relative('../../results')
         self.log_created = False
         self.log_pose = None
         self.log_error = None
@@ -77,19 +81,30 @@ class PoseEvaluator():
         self.log_err_rz = []
 
         self.log_max_sim = []
+        self.recon_reel = []
 
         self.codebook_latent, self.codebook_poses = codebook
 
     @gin.configurable
     def log_video(self, img_list, log_to_wandb: str, wandb_entity: str):
-        import pdb; pdb.set_trace()
-        [cv2.imwrite(f"{self.log_dir}/{index:<4d}.png", v) for index, v in enumerate(tqdm(img_list, desc="Writing images to disk"))]
+        [cv2.imwrite(f"{self.log_dir}/{index:04d}.png", v) for index, v in enumerate(tqdm(img_list, desc="Writing images to disk"))]
 
+        (Path(self.log_dir) / "recon").mkdir(exist_ok=True, parents=True)
+        [save_image(r, f"{self.log_dir}/recon/{index:04d}.png", normalize=True) for index, r in enumerate(self.recon_reel)]
+
+        offset = len(self.recon_reel) // 8
+        reel_log = {}
+        for index, start in enumerate(list(range(0, 503, offset))):
+            cur_reel = make_grid(self.recon_reel[start:start+offset], normalize=True)
+            save_image(cur_reel, f"{self.log_dir}/recon_reel_{index:04d}.png", normalize=True)
+            reel_log.update(**{f"recon_reel_{index:04d}": wandb.Image(cur_reel)})
+        
         if log_to_wandb:
             vid = np.stack(img_list)
             wandb.init(project="AugmentedAutoEncoders-test", entity=wandb_entity)
-            wandb.log({"video": wandb.Video((vid * 255).transpose(0, 3, 1, 2), fps=15, format="mp4"),
-                       "gif":   wandb.Video((vid * 255).transpose(0, 3, 1, 2), fps=5, format="gif")})
+            wandb.log({"video": wandb.Video((vid).transpose(0, 3, 1, 2), fps=15, format="mp4"),
+                       "gif":   wandb.Video((vid).transpose(0, 3, 1, 2), fps=5, format="gif"),
+                       **reel_log})
 
 
     # initialize PoseRBPF
@@ -110,8 +125,11 @@ class PoseEvaluator():
         roi_info[:, 4] = 128.0 + 128.0 / 2
 
         # compute the codes
-        _, query_latent = self.aae.forward(images_roi_cuda)
+        recon, query_latent = self.aae.forward(images_roi_cuda)
         query_latent = query_latent.detach()
+        recon = recon.detach()
+        reel = torch.cat((images_roi_cuda.cpu(), recon.cpu()), dim=-1) * 255
+        self.recon_reel.append(reel.squeeze())
 
         # pw_latent = pairwise_cosine_distances(query_latent, self.codebook_latent).squeeze()
         pw_latent = self.aae.pairwise_cosine_distances(query_latent, self.codebook_latent).squeeze()
@@ -220,16 +238,21 @@ class PoseEvaluator():
 
         # for tless dataset, save the results as sixd challenge format
         if tless:
-            obj_id_sixd = self.target_obj_cfg.PF.TRACK_OBJ[-2:]
-            seq_id_sixd = filename[0][:2]
-            img_id_sixd = filename[0][-4:]
+            obj_id_sixd = int(self.target_obj_cfg.PF.TRACK_OBJ[-2:])
+            seq_id_sixd = int(filename[0][:2])
+            img_id_sixd = int(filename[0][-4:])
+            """
             save_folder_sixd = self.target_obj_cfg.PF.SAVE_DIR[
                                :-7] + 'dpf_tless_primesense_all/'  # .format(obj_id_sixd)
             save_folder_sixd += seq_id_sixd + '/'
             if not os.path.exists(save_folder_sixd):
                 os.makedirs(save_folder_sixd)
+            # pose_log_sixd = open(save_folder_sixd + filename_sixd, "w+")
             filename_sixd = img_id_sixd + '_' + obj_id_sixd + '.yml'
-            pose_log_sixd = open(save_folder_sixd + filename_sixd, "w+")
+            """
+            filename_sixd = "bop_results.csv"
+            pose_log_sixd = open(str(Path(self.log_dir) / filename_sixd), "a")
+            """
             pose_log_sixd.write('run_time: -1 \n')
             pose_log_sixd.write('ests: \n')
             str_score = '- {score: 1.00000000, '
@@ -237,10 +260,24 @@ class PoseEvaluator():
                 .format(self.rot_bar[0, 0], self.rot_bar[0, 1], self.rot_bar[0, 2],
                         self.rot_bar[1, 0], self.rot_bar[1, 1], self.rot_bar[1, 2],
                         self.rot_bar[2, 0], self.rot_bar[2, 1], self.rot_bar[2, 2])
+
             str_t = 't: [{:.8f}, {:.8f}, {:.8f}]'.format(self.trans_bar[0] * 1000.0,
                                                          self.trans_bar[1] * 1000.0,
                                                          self.trans_bar[2] * 1000.0)
-            pose_log_sixd.write(str_score + str_R + str_t + '}')
+            
+            """
+            R = '{:.8f} {:.8f} {:.8f} {:.8f} {:.8f} {:.8f} {:.8f} {:.8f} {:.8f}' \
+                .format(self.rot_bar[0, 0], self.rot_bar[0, 1], self.rot_bar[0, 2],
+                        self.rot_bar[1, 0], self.rot_bar[1, 1], self.rot_bar[1, 2],
+                        self.rot_bar[2, 0], self.rot_bar[2, 1], self.rot_bar[2, 2])
+
+            t = '{:.8f} {:.8f} {:.8f}'.format(self.trans_bar[0] * 1000,
+                                              self.trans_bar[1] * 1000,
+                                              self.trans_bar[2] * 1000)
+
+            # self.sixd_log += f"{seq_id_sixd}, {img_id_sixd}, {obj_id_sixd}, 1.000, {R}, {t}\n"
+            # pose_log_sixd.write(str_score + str_R + str_t + '}')
+            pose_log_sixd.write(f"{seq_id_sixd}, {img_id_sixd}, {obj_id_sixd}, 1.000, {R}, {t}, {self.time_elapse}\n")
             pose_log_sixd.close()
 
 
@@ -258,9 +295,9 @@ class PoseEvaluator():
     def eval_dataset(self, val_dataset, sequence, show_vis=True):
             self.log_err_r = []
             self.log_err_t = []
-            self.log_dir = str(Path(self.log_dir) / 'Eval' / str(time.time_ns()))
-            if not os.path.exists(self.log_dir):
-                os.makedirs(self.log_dir)
+            self.log_dir = str(Path(self.log_dir) / 'eval' / str(time.time_ns()))
+            if not Path(self.log_dir).exists():
+                Path(self.log_dir).mkdir(parents=True, exist_ok=True)
 
             val_generator = torch.utils.data.DataLoader(val_dataset, batch_size=1,
                                                         shuffle=False, num_workers=0)
@@ -317,8 +354,8 @@ class PoseEvaluator():
                                          self.data_intrinsics)
                 
                 torch.cuda.synchronize()
-                time_elapse = time.time() - time_start
-                print('[Orientation estimation] fps = ', 1 / time_elapse)
+                self.time_elapse = time.time() - time_start
+                print('[Orientation estimation] fps = ', 1 / self.time_elapse)
 
                 # logging
                 self.display_result(step, steps)
@@ -333,9 +370,12 @@ class PoseEvaluator():
                                                                     self.target_obj_idx)
 
                     image_est_disp = image_est_render[0].permute(1, 2, 0).cpu().numpy()
+                    obj_mask = np.all((image_est_disp[:, :] != np.zeros(3)), axis=-1)
+                    image_est_disp[obj_mask] = seeded_colors
+
                     image_disp = 0.4 * image_disp + 0.6 * image_est_disp
 
-                    vis_img_list.append(image_disp)
+                    vis_img_list.append(image_disp * 255)
 
 
                 if step == steps-1:
