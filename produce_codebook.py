@@ -36,7 +36,7 @@ def create_codebook(cfg_file:    str=gin.REQUIRED,
     
         model = AugmentedAutoEncoder(fixed_batch=None, log_to_wandb=False)
 
-        ckpt = torch.load('./results/checkpoints/aae_obj_01.pth')
+        ckpt = torch.load('./results/checkpoints/obj_01.pth')
         model.load_state_dict(ckpt['model'])
 
 
