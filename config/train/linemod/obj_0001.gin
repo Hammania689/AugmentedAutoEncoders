@@ -1,0 +1,24 @@
+include './config/aae.gin'
+#include './config/camera.gin'
+
+#from src.aae import dataset
+
+AugmentedAutoEncoder.cad_model_name = "obj_01"
+
+load_ycbrenderer_dataset.dis_dir = "./data/VOC2012_images"
+load_ycbrenderer_dataset.cfg_file = "./src/config/train/TLess/01/obj_01.yml"
+load_ycbrenderer_dataset.model_path = "./data"
+
+# Old Slow Renderer
+#dataset.OnlineRenderer.batch_size = 64
+#dataset.OnlineRenderer.cad_model_path = "./data/t_less/models_cad/obj_01.ply"
+
+
+train_aae.num_workers = 0
+train_aae.batch_size = 64
+train_aae.num_train_iters = 200
+train_aae.cache_save_interval = 10
+train_aae.device = "cuda:1"
+
+
+

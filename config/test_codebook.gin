@@ -1,0 +1,7 @@
+include '../config/aae.gin'
+
+AugmentedAutoEncoder.cad_model_name = "obj_01"
+
+create_codebook.cfg_file = "../src/config/train/TLess/01/obj_01.yml"
+create_codebook.model_path = "../data"
+create_codebook.pose_path = "../config/poses.npy"
