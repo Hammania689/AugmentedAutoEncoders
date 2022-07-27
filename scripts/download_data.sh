@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # download checkpoints
-mkdir -p checkpoints;
+mkdir -p results/checkpoints;
 sh ./scripts/gdrive_download.sh 1kBNP_PZ_MakYYBzj58WksFNg5U_c7yjS checkpoints.tar.gz;
-tar -xvf checkpoints.tar.gz -C ./checkpoints/;
+tar -xvf checkpoints.tar.gz -C ./results/checkpoints/;
 rm ./checkpoints.tar.gz
 
 # download data
