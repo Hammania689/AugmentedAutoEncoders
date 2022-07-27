@@ -3,8 +3,11 @@
 Hameed Abdul (hameeda2@illinois.edu) | Spring 22' [CS 498 Introduction into Machine Perception][cs498]
 
 This is a re-implementation of [Sundermeyer's et al.'s Augmented AutoEncoders][aae_paper]$^1$. 
-This accompanying [manuscript][overleaf] describe in further detail this re-implementation.
-Supplementary visuals can be found [here][supp] 
+
+
+- :scroll: This accompanying [manuscript][overleaf] describe in further detail this re-implementation.
+- 📚 Supplementary visuals can be found [here][supp] 
+- 🏋🏿‍♂️ Official BOP Challenge Submision can be found [here][bop]
 
 
 
@@ -61,3 +64,4 @@ pip install -e .
 [cb_cfg]: https://github.com/Hammania689/AugmentedAutoEncoders/blob/main/config/codebook.gin
 [train_cfg]: https://github.com/Hammania689/AugmentedAutoEncoders/blob/main/config/train/linemod/obj_0001.gin
 [test_cfg]: https://github.com/Hammania689/AugmentedAutoEncoders/blob/main/config/test_obj01.gin
+[bop]: https://bop.felk.cvut.cz/sub_info/2427/
