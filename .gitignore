@@ -5,3 +5,5 @@ data/
 *.egg-info
 __pycache__
 *.swp
+wandb/
+*/wandb/
