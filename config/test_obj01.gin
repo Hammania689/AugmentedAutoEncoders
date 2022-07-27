@@ -7,7 +7,7 @@ AugmentedAutoEncoder.cad_model_name = "obj_01"
 AugmentedAutoEncoder.log_to_wandb = False
 
 evaluate_aae.sequence = 1
-evaluate_aae.ckpt_path = "./results/checkpoints/obj_01/1658454137570245788/obj_01_199.pth"
+evaluate_aae.ckpt_path = "./results/checkpoints/obj_01.pth"
 evaluate_aae.path_to_codebook = "./results/codebooks/obj_01.pth"
 evaluate_aae.test_cfg_file = "./config/test/test_single_obj_list_tless/01.yml"
 evaluate_aae.pf_cfg_dir = "./config/test/TLess/"
