@@ -42,6 +42,7 @@ def train_aae(num_workers: int=gin.REQUIRED,
     
     
     BS = 64
+    # batch_iters = aae_paper_views // BS
     batch_iters = 10 #aae_paper_views // BS
 
     dataset = OnlineRenderer()
@@ -66,6 +67,8 @@ def train_aae(num_workers: int=gin.REQUIRED,
             model.save_state(epoch, aux_dict)
 
         model.log(epoch, is_save_epoch)
+            
 
+# gin.add_config_file_search_path('../')
 gin.parse_config_file('../config/train/linemod/obj_0001.gin')
 train_aae()
