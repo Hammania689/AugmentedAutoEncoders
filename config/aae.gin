@@ -1,0 +1,11 @@
+AugmentedAutoEncoder.code_dim = 128
+AugmentedAutoEncoder.opt = @Adam
+AugmentedAutoEncoder.lr = 2E-4
+AugmentedAutoEncoder.loss = @BootstrapedMSEloss
+AugmentedAutoEncoder.wandb_entity = "hammania689"
+AugmentedAutoEncoder.log_to_wandb = True
+
+BootstrapedMSEloss.b_factor = 4
+
+
+
