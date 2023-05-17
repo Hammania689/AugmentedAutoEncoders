@@ -6,9 +6,8 @@ tar -xvf checkpoints.tar.gz -C ./results/;
 rm ./checkpoints.tar.gz
 
 # download data
-mkdir -p data;
 sh ./scripts/gdrive_download.sh 1kBNP_PZ_MakYYBzj58WksFNg5U_c7yjS data.tar.gz;
-tar -xvf data.tar.gz -C ./data/;
+tar -xvf data.tar.gz 
 rm ./data.tar.gz
 
 # download detections
