@@ -87,6 +87,7 @@ Docker/start_container
 
 <details>
 <summary> Click to expand....</summary>
+
 ```bash
 conda env create -f env.yml
 conda activate aae
