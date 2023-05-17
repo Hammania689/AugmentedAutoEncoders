@@ -43,7 +43,11 @@ class InfiniteIter:
         return data
 
 class DummyFile(object):
-    def write(self, x): pass
+    def write(self, x): 
+        pass
+
+    def flush(self):
+        pass
 
 @contextlib.contextmanager
 def nostdout():
