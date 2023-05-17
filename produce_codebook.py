@@ -55,3 +55,4 @@ def create_codebook(cfg_file:    str=gin.REQUIRED,
     
     
 gin.parse_config_file('./config/test_codebook.gin')
+create_codebook()
