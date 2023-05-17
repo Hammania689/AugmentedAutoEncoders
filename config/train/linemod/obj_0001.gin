@@ -1,8 +1,6 @@
 include './config/aae.gin'
 #include './config/camera.gin'
 
-#from src.aae import dataset
-
 AugmentedAutoEncoder.cad_model_name = "obj_01"
 
 load_ycbrenderer_dataset.dis_dir = "./data/VOC2012_images"
