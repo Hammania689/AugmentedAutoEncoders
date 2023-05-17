@@ -95,9 +95,11 @@ class View(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self,
-                 code_dim: int):
+                 code_dim: int,
+                 im_dim: int):
         super(Encoder, self).__init__()
 
+        pre_latent_im_dim = (im_dim // 16) ** 2 
         self.net = nn.Sequential(nn.Conv2d(3, 128, 5, stride=2, padding=2),
                                  nn.ReLU(),
                                  nn.Conv2d(128, 256, 5, stride=2, padding=2),
@@ -106,8 +108,8 @@ class Encoder(nn.Module):
                                  nn.ReLU(),
                                  nn.Conv2d(256, 512, 5, stride=2, padding=2),
                                  nn.ReLU(),
-                                 View((512 * 8 * 8,)),
-                                 nn.Linear(512 * 8 * 8, code_dim))
+                                 View((512 * pre_latent_im_dim,)),
+                                 nn.Linear(512 * pre_latent_im_dim, code_dim))
 
 
     def forward(self, x):
@@ -117,12 +119,16 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     
     def __init__(self,
-                 code_dim: int):
+                 code_dim: int,
+                 im_dim: int):
         
         super(Decoder, self).__init__()
 
-        self.net = nn.Sequential(nn.Linear(code_dim, 512 * 8 * 8),
-                                 View((512, 8, 8)),
+        
+        pre_latent_im_dim = (im_dim // 16) ** 2 
+        post_latent_im_shape =  (512, im_dim // 16, im_dim // 16)
+        self.net = nn.Sequential(nn.Linear(code_dim, 512 * pre_latent_im_dim),
+                                 View(post_latent_im_shape),
                                  nn.ConvTranspose2d(512, 256, 5, 2, padding=2, output_padding=1),
                                  nn.ReLU(),
                                  nn.ConvTranspose2d(256, 256, 5, 2, padding=2, output_padding=1),
@@ -143,6 +149,7 @@ class AugmentedAutoEncoder(nn.Module):
                  wandb_entity: Optional[str]=None,
                  log_to_wandb: bool=False,
                  code_dim: int=gin.REQUIRED,
+                 im_dim:   int=gin.REQUIRED,
                  opt: torch.optim=gin.REQUIRED,
                  lr: float=gin.REQUIRED,
                  loss: nn.Module=gin.REQUIRED,
@@ -153,8 +160,9 @@ class AugmentedAutoEncoder(nn.Module):
 
         self.__dict__.update(vars())
 
-        self.encoder = Encoder(code_dim)
-        self.decoder = Decoder(code_dim)
+        self.encoder = Encoder(code_dim, im_dim)
+        self.decoder = Decoder(code_dim, im_dim)
+
 
         self.opt = opt(self.parameters(), lr)
         self.loss = loss()
