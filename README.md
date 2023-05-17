@@ -17,63 +17,68 @@ https://user-images.githubusercontent.com/20171200/181167929-119342c1-3a12-41bf-
 ## Environment Setup 👷🏿 :earth_africa:
 ```bash
 git clone --recursive https://github.com/Hammania689/AugmentedAutoEncoders.git
-cd AugmentedAutoEncoders```
+cd AugmentedAutoEncoders
+```
 
 
 ### Docker 🐳
 ❗*We **strongly** suggest that Docker be used*❗
 <details>
-	<summary>Click to expand....</summary>
+<summary>Click to expand....</summary>
 
 
-	### Prequisites
-	- [Docker][docker]
-	- [Nvidia-docker2][nv2]
-	- [nvidia-container-runtime][ncr]
+### Prequisites
+- [Docker][docker]
+- [Nvidia-docker2][nv2]
+- [nvidia-container-runtime][ncr]
 
-	[docker]: https://docs.docker.com/install/
-	[nv2]: https://github.com/nvidia/nvidia-docker/wiki/
-	[hardware]: http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
-	[ncr]: https://github.com/nvidia/nvidia-container-runtime#ubuntu-distributions
+[docker]: https://docs.docker.com/install/
+[nv2]: https://github.com/nvidia/nvidia-docker/wiki/
+[hardware]: http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
+[ncr]: https://github.com/nvidia/nvidia-container-runtime#ubuntu-distributions
 
-	### Running Commands
+### Running Commands
 
-	```bash
-	cd {path_to_this_repo}/pose_estimation/poserbpf
-	# Build image 
-	bash Docker/build_image
+```bash
+cd {path_to_this_repo}/pose_estimation/poserbpf
+# Build image 
+bash Docker/build_image
 
-	# Build and start container
-	bash Docker/build_container```
+# Build and start container
+bash Docker/build_container
+```
 
-	The previous command will start an interactive shell session with the `stable_pose_aae` docker container that was just built.
-
-
-	#### Post Container Setup
-	```bash
-	cd src/ycb_render
-	pip install -r requirement.txt
-	pip install -e .
-
-	# ROI Align Setup
-	cd ../../src/RoIAlign
-	pip install -e .```
+The previous command will start an interactive shell session with the `stable_pose_aae` docker container that was just built.
 
 
-	To start and connect to the built container 
-	# Access the running container in another terminal
-	```bash Docker/start_container```
+#### Post Container Setup
+```bash
+cd src/ycb_render
+pip install -r requirement.txt
+pip install -e .
 
-	*This will start another interactive shell session with the running `stable_pose_aae` container that was built. Running this is equivalent to opening a new terminal window. **So prior to running the roslaunch or rosrun commands outline below you will need to run `docker exec -it stable_pose_aae bash`***
+# ROI Align Setup
+cd ../../src/RoIAlign
+pip install -e .
+```
 
-	#### Helpful Resources for Extending and Debugging Docker with ROS, NVIDIA, and GUI passthrough
-	- [Official MoveIt! 1 Docker Install Documentation][moveit]
-	- [ROS' Docker Hardware Accleration][ros_docker_doc]
-	- [How to Use Basler USB Cameras in Docker Container][basler_dock]
 
-	[moveit]:https://moveit.ros.org/install/docker/
-	[basler_dock]:https://www.baslerweb.com/en/sales-support/knowledge-base/frequently-asked-questions/how-to-use-basler-usb-cameras-in-docker-container/588488/
-	[ros_docker_doc]:http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
+To start and connect to the built container 
+# Access the running container in another terminal
+```bash 
+Docker/start_container
+```
+
+*This will start another interactive shell session with the running `stable_pose_aae` container that was built. Running this is equivalent to opening a new terminal window. **So prior to running the roslaunch or rosrun commands outline below you will need to run `docker exec -it stable_pose_aae bash`***
+
+#### Helpful Resources for Extending and Debugging Docker with ROS, NVIDIA, and GUI passthrough
+- [Official MoveIt! 1 Docker Install Documentation][moveit]
+- [ROS' Docker Hardware Accleration][ros_docker_doc]
+- [How to Use Basler USB Cameras in Docker Container][basler_dock]
+
+[moveit]:https://moveit.ros.org/install/docker/
+[basler_dock]:https://www.baslerweb.com/en/sales-support/knowledge-base/frequently-asked-questions/how-to-use-basler-usb-cameras-in-docker-container/588488/
+[ros_docker_doc]:http://wiki.ros.org/docker/Tutorials/Hardware%20Acceleration
 
 </details>
 
