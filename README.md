@@ -20,6 +20,7 @@ https://user-images.githubusercontent.com/20171200/181167929-119342c1-3a12-41bf-
 ```bash
 git clone --recursive https://github.com/Hammania689/AugmentedAutoEncoders.git
 cd AugmentedAutoEncoders
+```
 
 
 ## Docker 🐳
@@ -65,7 +66,6 @@ pip install -e .
 
 
 To start and connect to the built container 
-```
 # Access the running container in another terminal
 bash Docker/start_container
 ```
