@@ -17,8 +17,7 @@ https://user-images.githubusercontent.com/20171200/181167929-119342c1-3a12-41bf-
 ## Environment Setup 👷🏿 :earth_africa:
 ```bash
 git clone --recursive https://github.com/Hammania689/AugmentedAutoEncoders.git
-cd AugmentedAutoEncoders
-```
+cd AugmentedAutoEncoders```
 
 
 ### Docker 🐳
@@ -45,8 +44,7 @@ cd AugmentedAutoEncoders
 	bash Docker/build_image
 
 	# Build and start container
-	bash Docker/build_container
-	```
+	bash Docker/build_container```
 
 	The previous command will start an interactive shell session with the `stable_pose_aae` docker container that was just built.
 
@@ -59,14 +57,12 @@ cd AugmentedAutoEncoders
 
 	# ROI Align Setup
 	cd ../../src/RoIAlign
-	pip install -e .
-	```
+	pip install -e .```
 
 
 	To start and connect to the built container 
 	# Access the running container in another terminal
-	bash Docker/start_container
-	```
+	```bash Docker/start_container```
 
 	*This will start another interactive shell session with the running `stable_pose_aae` container that was built. Running this is equivalent to opening a new terminal window. **So prior to running the roslaunch or rosrun commands outline below you will need to run `docker exec -it stable_pose_aae bash`***
 
