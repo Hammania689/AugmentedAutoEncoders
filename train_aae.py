@@ -116,6 +116,7 @@ def train_aae(num_workers: int=gin.REQUIRED,
               device: str=gin.REQUIRED):
     
     
+    print("Loading Data....")
     with nostdout():
         dataset_train, dataset_dis = load_ycbrenderer_dataset()
 
