@@ -56,6 +56,7 @@ def nostdout():
     yield
     sys.stdout = save_stdout
     
+# TODO (ham) make this more general
 @gin.configurable
 def load_ycbrenderer_dataset(dis_dir:     str=gin.REQUIRED,
                              cfg_file:    str=gin.REQUIRED,
@@ -67,7 +68,6 @@ def load_ycbrenderer_dataset(dis_dir:     str=gin.REQUIRED,
     print(cfg.TRAIN.RENDER_SZ)
     print(cfg.TRAIN.INPUT_IM_SIZE)
 
-    # TODO (ham) make this more general
     # set up render
     models = cfg.TRAIN.OBJECTS[:]
     renderer = TLessTensorRenderer(cfg.TRAIN.RENDER_SZ, cfg.TRAIN.RENDER_SZ)
