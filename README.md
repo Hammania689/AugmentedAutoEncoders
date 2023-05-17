@@ -64,7 +64,7 @@ pip install -e .
 
 
 To start and connect to the built container 
-# Access the running container in another terminal
+#### Access the running container in another terminal
 ```bash 
 Docker/start_container
 ```
