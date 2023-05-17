@@ -13,7 +13,6 @@ from src.ycb_render.tless_renderer_tensor import *
 from src.config.config import cfg, cfg_from_file
 
 
-# TODO (ham): move to auxillary helper script
 class DummyFile(object):
     def write(self, x): pass
     
