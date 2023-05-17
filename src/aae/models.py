@@ -1,4 +1,27 @@
-import time
+try:
+    from time import time_ns
+except:
+    import ctypes
+
+    CLOCK_REALTIME = 0
+
+    class timespec(ctypes.Structure):
+        _fields_ = [
+            ('tv_sec', ctypes.c_int64), # seconds, https://stackoverflow.com/q/471248/1672565
+            ('tv_nsec', ctypes.c_int64), # nanoseconds
+            ]
+
+    clock_gettime = ctypes.cdll.LoadLibrary('libc.so.6').clock_gettime
+    clock_gettime.argtypes = [ctypes.c_int64, ctypes.POINTER(timespec)]
+    clock_gettime.restype = ctypes.c_int64    
+
+    def time_ns():
+        tmp = timespec()
+        ret = clock_gettime(CLOCK_REALTIME, ctypes.pointer(tmp))
+        if bool(ret):
+            raise OSError()
+        return tmp.tv_sec * 10 ** 9 + tmp.tv_nsec
+
 from typing import List, Optional, Dict, Union
 from pathlib import Path
 
@@ -177,7 +200,7 @@ class AugmentedAutoEncoder(nn.Module):
 
     def _setup_output(self):
         try:
-            target_path = f"../../results/checkpoints/{self.cad_model_name}/{time.time_ns()}"
+            target_path = f"../../results/checkpoints/{self.cad_model_name}/{time_ns()}"
             self.output_dir = get_path_to_config(target_path)
 
             # Create path if doesn't exist already
