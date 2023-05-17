@@ -83,18 +83,19 @@ Docker/start_container
 </details>
 
 
-### Local Setup 🖥
+### Local Setup with Conda 🖥
 
 <details>
 <summary> Click to expand....</summary>
 
+#### Conda setup
 ```bash
 conda env create -f env.yml
 conda activate aae
 pip install -e .
 ```
 
-#### YCB Renderer ROI Align Setup
+#### YCB Renderer & ROI Align Setup
 ```bash
 cd src/ycb_render
 sudo apt-get install libassimp-dev
