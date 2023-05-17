@@ -1,4 +1,5 @@
 AugmentedAutoEncoder.code_dim = 128
+AugmentedAutoEncoder.im_dim = 128
 AugmentedAutoEncoder.opt = @Adam
 AugmentedAutoEncoder.lr = 2E-4
 AugmentedAutoEncoder.loss = @BootstrapedMSEloss
