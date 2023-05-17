@@ -86,25 +86,25 @@ Docker/start_container
 ### Local Setup 🖥
 
 <details>
-	<summary> Click to expand....</summary>
-	```bash
-	conda env create -f env.yml
-	conda activate aae
-	pip install -e .
-	```
+<summary> Click to expand....</summary>
+```bash
+conda env create -f env.yml
+conda activate aae
+pip install -e .
+```
 
-	# YCB Renderer Setup
-	cd src/ycb_render
-	sudo apt-get install libassimp-dev
-	pip install -r requirement.txt
-	# additionally, you need to install nvidia OpenGL drivers and make them visible
-	export LD_LIBRARY_PATH=/usr/lib/nvidia-<vvv>:$LD_LIBRARY_PATH
-	pip install -e .
+#### YCB Renderer ROI Align Setup
+```bash
+cd src/ycb_render
+sudo apt-get install libassimp-dev
+pip install -r requirement.txt
+# additionally, you need to install nvidia OpenGL drivers and make them visible
+export LD_LIBRARY_PATH=/usr/lib/nvidia-<vvv>:$LD_LIBRARY_PATH
+pip install -e .
 
-	# ROI Align Setup
-	cd ../../src/RoIAlign
-	pip install -e .
-	```
+cd ../../src/RoIAlign
+pip install -e .
+```
 </details>
 
 
