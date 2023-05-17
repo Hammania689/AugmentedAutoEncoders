@@ -14,16 +14,14 @@ This is a re-implementation of [Sundermeyer's et al.'s Augmented AutoEncoders][a
 https://user-images.githubusercontent.com/20171200/181167929-119342c1-3a12-41bf-9286-c34f87e3acda.mp4
 
 
-## Setup 👷🏿
-
-### Environment :earth_africa:
+## Environment Setup 👷🏿 :earth_africa:
 ```bash
 git clone --recursive https://github.com/Hammania689/AugmentedAutoEncoders.git
 cd AugmentedAutoEncoders
 ```
 
 
-## Docker 🐳
+### Docker 🐳
 ❗*We **strongly** suggest that Docker be used*❗
 <details>
 	<summary>Click to expand....</summary>
@@ -84,7 +82,7 @@ cd AugmentedAutoEncoders
 </details>
 
 
-## Local Setup 🖥
+### Local Setup 🖥
 
 <details>
 	<summary> Click to expand....</summary>
@@ -109,7 +107,7 @@ cd AugmentedAutoEncoders
 </details>
 
 
-### Data and Checkpoints :floppy_disk:
+## Download Data and Checkpoints :floppy_disk:
 
 `bash .scripts/download_data.sh`
 
