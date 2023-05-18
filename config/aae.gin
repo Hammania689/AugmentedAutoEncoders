@@ -5,7 +5,7 @@ AugmentedAutoEncoder.opt = @Adam
 AugmentedAutoEncoder.lr = 2E-4
 AugmentedAutoEncoder.loss = @BootstrapedMSEloss
 AugmentedAutoEncoder.wandb_entity = "hammania689"
-AugmentedAutoEncoder.log_to_wandb = True
+AugmentedAutoEncoder.log_to_wandb = False
 
 BootstrapedMSEloss.b_factor = 4
 
