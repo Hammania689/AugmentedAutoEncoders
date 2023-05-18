@@ -3,16 +3,18 @@ import sys
 import warnings
 
 import gin
-from torch.utils.data import DataLoader
-from torchvision.transforms import functional as T
 from tqdm import tqdm
 
-from src.aae.models import AugmentedAutoEncoder
-from src.aae.Visualizations import plot_batch, plot_img
-from src.datasets.render_tless_dataset import *
-from src.datasets.concat_dataset import ConcatDataset
-from src.ycb_render.tless_renderer_tensor import *
-from src.config.config import cfg, cfg_from_file, get_output_dir, write_selected_class_file
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    from torch.utils.data import DataLoader
+    from torchvision.transforms import functional as T
+    from src.aae.models import AugmentedAutoEncoder
+    from src.aae.Visualizations import plot_batch, plot_img
+    from src.datasets.render_tless_dataset import *
+    from src.datasets.concat_dataset import ConcatDataset
+    from src.ycb_render.tless_renderer_tensor import *
+    from src.config.config import cfg, cfg_from_file, get_output_dir, write_selected_class_file
 
 
 class InfiniteIter:
