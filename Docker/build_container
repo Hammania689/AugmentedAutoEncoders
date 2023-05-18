@@ -17,7 +17,7 @@ then
     chmod a+r $XAUTH
 fi
 
-wandb docker-run -it \
+docker run -it \
 	--name $container_name \
 	--volume=$XSOCK:$XSOCK:rw \
         --volume=$XAUTH:$XAUTH:rw \
