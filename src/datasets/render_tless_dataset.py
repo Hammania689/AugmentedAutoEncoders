@@ -19,7 +19,7 @@ import glob
 from src.datasets.render_ycb_dataset import *
 from src.ycb_render.tless_renderer_tensor import *
 import imgaug.augmenters as iaa
-
+import gin
 
 def get_path_to_config(gin_path)-> str:
     cur_path = Path(__file__).absolute().parent
@@ -40,9 +40,10 @@ def get_path_to_config(gin_path)-> str:
     return str(query_path)
 
 
+@gin.configurable
 class tless_multi_render_dataset(torch.utils.data.Dataset):
-    def __init__(self, model_dir, model_names, renderer, render_size=128, output_size=(128, 128),
-                 target_size=128,
+    def __init__(self, model_dir, model_names, renderer, render_size=gin.REQUIRED, output_size=gin.REQUIRED,
+                 target_size=gin.REQUIRED,
                  chrom_rand_level=cfg.TRAIN.CHM_RAND_LEVEL):
 
         self._name = 'tless_syn'
@@ -237,7 +238,7 @@ class tless_multi_render_dataset(torch.utils.data.Dataset):
         seg = seg_cuda[:, :, :3]
         shift = np.asarray([np.random.uniform(self.lb_shift, self.ub_shift), np.random.uniform(self.lb_shift, self.ub_shift)], dtype=np.float32)
         scale = np.random.uniform(self.lb_scale, self.ub_scale)
-        affine = torch.from_numpy(np.float32([[scale, 0, shift[0]/128.0], [0, scale, shift[1]/128.0]])).float()
+        affine = torch.from_numpy(np.float32([[scale, 0, shift[0]/self.output_size[0]], [0, scale, shift[1]/self.output_size[1]]])).float()
         pc_cuda = pc_cuda.flip(0)
         pc_cuda = pc_cuda[:, :, :3]
         seg_input = seg[:, :, 0].clone().cpu().numpy()
@@ -280,18 +281,20 @@ class tless_multi_render_dataset(torch.utils.data.Dataset):
         return len(self.pose_list)
 
 # render on the fly
+@gin.configurable
 class tless_codebook_online_generator(torch.utils.data.Dataset):
-    def __init__(self, model_dir, model_names, render_dist, output_size=(128, 128), gpu_id=0,ts=15, pose_list_path='./config/poses.npy'):
-        self.renderer = TLessTensorRenderer(128, 128, gpu_id=gpu_id)
-        self.h = 128
-        self.w = 128
+    def __init__(self, model_dir, model_names, render_dist, output_size=gin.REQUIRED, gpu_id=0,ts=15, pose_list_path='./config/poses.npy'):
+        H, W = output_size
+        self.renderer = TLessTensorRenderer(H, W, gpu_id=gpu_id)
+        self.h = H
+        self.w = W
         self.models = model_names
         obj_paths = ['{}/tless_models/{}.ply'.format(model_dir, item) for item in self.models]
         texture_paths = ['' for cls in self.models]
 
         self.renderer.load_objects(obj_paths, texture_paths)
         self.renderer.set_camera_default()
-        self.renderer.set_projection_matrix(self.w, self.h, 1076.74064739, 1075.17825536, 64.0, 64.0, 0.01, 100)
+        self.renderer.set_projection_matrix(self.w, self.h, 1076.74064739, 1075.17825536, self.H / 2, self.W / 2, 0.01, 100)
         self.renderer.set_light_pos([0, 0, 0])
 
         self.render_dist = render_dist
