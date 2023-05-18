@@ -1,5 +1,6 @@
 import contextlib
 import sys
+import warnings
 
 import gin
 from torch.utils.data import DataLoader
@@ -60,10 +61,14 @@ def nostdout():
 @gin.configurable
 def load_ycbrenderer_dataset(dis_dir:     str=gin.REQUIRED,
                              cfg_file:    str=gin.REQUIRED,
+                             im_dim:      int=gin.REQUIRED,
                              model_path:  str=gin.REQUIRED,):
 
     cfg_from_file(cfg_file)
     cfg.MODE = 'TRAIN'
+    cfg.TRAIN.RENDER_SZ = im_dim
+    cfg.TRAIN.INPUT_IM_SIZE = [im_dim, im_dim]
+
     print(cfg.TRAIN.OBJECTS)
     print(cfg.TRAIN.RENDER_SZ)
     print(cfg.TRAIN.INPUT_IM_SIZE)

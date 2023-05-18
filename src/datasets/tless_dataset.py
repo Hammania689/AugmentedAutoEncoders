@@ -7,6 +7,7 @@ import ruamel.yaml as yaml
 from pathlib import Path
 import png
 import matplotlib.pyplot as plt
+import gin
 
 def load_info(path):
     with open(path, 'r') as f:
@@ -48,8 +49,9 @@ def load_depth(depth_path):
     return depth16
 
 
+@gin.configurable
 class tless_dataset(data.Dataset):
-    def __init__(self, class_ids, object_names, class_model_num, path, list_file, im_dim=128,
+    def __init__(self, class_ids, object_names, class_model_num, path, list_file, im_dim=gin.REQUIRED,
                  detection_path='./detections/tless_retina_detections/'):
         self.im_dim = im_dim
         self.dataset_type = 'tless'

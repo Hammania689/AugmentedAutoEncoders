@@ -19,6 +19,7 @@ import glob
 import time
 import imgaug.augmenters as iaa
 import matplotlib.pyplot as plt
+import gin
 
 def K2P(w, h, fu, fv, u0, v0, zNear = 0.01, zFar = 100.0):
     L = -(u0) * zNear / fu
@@ -249,14 +250,17 @@ def add_noise(image):
 
     return noisy
 
+@gin.configurable
 class DistractorDataset(data.Dataset):
-    def __init__(self, distractor_dir, chrom_rand_level, size_crop=(128, 128)):
+    def __init__(self, distractor_dir, chrom_rand_level, size_crop=gin.REQUIRED):
+        self.size_crop = size_crop
         self.dis_fns = []
         if distractor_dir is not None:
             for fn in os.listdir(distractor_dir):
                 self.dis_fns.append(os.path.join(distractor_dir, fn))
         self.num_dis = len(self.dis_fns)
 
+        # TODO (ham) add more transform here
         self.transform = torchvision.transforms.Compose(
             [
                 torchvision.transforms.RandomRotation(360),
@@ -292,10 +296,11 @@ class DistractorDataset(data.Dataset):
                 2, 0, 1).astype(
                 np.float32) / 255.0
         except:
-            distractor = np.zeros((3, 128, 128), dtype=np.float32)
+            distractor = np.zeros((3, *self.size_crop), dtype=np.float32)
 
         return distractor
 
+@gin.configurable
 class ycb_multi_render_dataset(torch.utils.data.Dataset):
     def __init__(self, model_dir, model_names,  renderer, render_size=128,
                  output_size=(128, 128),

@@ -156,9 +156,9 @@ class Decoder(nn.Module):
                                  nn.ReLU(),
                                  nn.ConvTranspose2d(256, 256, 5, 2, padding=2, output_padding=1),
                                  nn.ReLU(),
-                                 nn.ConvTranspose2d(256, 128, 5, 2, padding=2, output_padding=1),
+                                 nn.ConvTranspose2d(256, im_dim, 5, 2, padding=2, output_padding=1),
                                  nn.ReLU(),
-                                 nn.ConvTranspose2d(128, 3, 5, 2, padding=2, output_padding=1))
+                                 nn.ConvTranspose2d(im_dim, 3, 5, 2, padding=2, output_padding=1))
 
 
     def forward(self, x):
