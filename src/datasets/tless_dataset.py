@@ -49,8 +49,9 @@ def load_depth(depth_path):
 
 
 class tless_dataset(data.Dataset):
-    def __init__(self, class_ids, object_names, class_model_num, path, list_file,
+    def __init__(self, class_ids, object_names, class_model_num, path, list_file, im_dim=128,
                  detection_path='./detections/tless_retina_detections/'):
+        self.im_dim = im_dim
         self.dataset_type = 'tless'
         self.path = path
 
@@ -103,7 +104,7 @@ class tless_dataset(data.Dataset):
     def __getitem__(self, idx):
         image, pose, intrinsics, bbox, depth = self.load(idx)
 
-        class_info = torch.zeros(128, 128, self.class_model_number)
+        class_info = torch.zeros(self.im_dim, self.im_dim, self.class_model_number)
         class_info[:, :, self.class_ids[0]] = 1
         instance_mask = torch.zeros(3 * self.class_model_number)
         instance_mask[self.class_ids[0]*3 : self.class_ids[0]*3 + 3] = 1
