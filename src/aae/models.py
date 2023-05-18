@@ -28,7 +28,10 @@ from pathlib import Path
 import gin.torch
 import numpy as np
 import torch
-import wandb
+try:
+    import wandb
+except ImportError as e:
+    pass
 from torch import nn, optim
 from torchvision.utils import save_image, make_grid
 from tqdm import tqdm
