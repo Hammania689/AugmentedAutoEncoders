@@ -1,0 +1,26 @@
+im_dim=128
+AugmentedAutoEncoder.code_dim = 128
+AugmentedAutoEncoder.im_dim = %im_dim
+AugmentedAutoEncoder.opt = @Adam
+AugmentedAutoEncoder.lr = 2E-4
+AugmentedAutoEncoder.loss = @BootstrapedMSEloss
+AugmentedAutoEncoder.wandb_entity = "hammania689"
+AugmentedAutoEncoder.log_to_wandb = False
+
+BootstrapedMSEloss.b_factor = 4
+
+
+# tless_dataset.im_dim = %im_dim
+# tless_multi_render_dataset.render_size = %im_dim
+# tless_multi_render_dataset.output_size = (%im_dim, %im_dim)
+# tless_multi_render_dataset.target_size = %im_dim
+# tless_codebook_online_generator.output_size = (%im_dim, %im_dim)
+
+# fit
+fit_multi_render_dataset.render_size = %im_dim
+fit_multi_render_dataset.output_size = (%im_dim, %im_dim)
+fit_multi_render_dataset.target_size = %im_dim
+fit_codebook_online_generator.output_size = (%im_dim, %im_dim)
+
+DistractorDataset.size_crop = (%im_dim, %im_dim)
+load_ycbrenderer_dataset.im_dim = %im_dim
