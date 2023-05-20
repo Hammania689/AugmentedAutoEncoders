@@ -115,6 +115,15 @@ pip install -e .
 `bash .scripts/download_data.sh`
 
 ## Run Commands 🏇🏿
+```bash
+# train AAE for topshell
+bash scripts/train_aae_topshell.sh
+# train AAE for mainshell
+bash scripts/train_aae_mainshell.sh
+# train AAE for insertmold
+bash scripts/train_aae_insertmold.sh
+```
+
 |Command| Description| Arguments / Configurations|
 |--|--|--|
 |`python train_aae.py`| Train an AAE to for obj_01 from the T-LESS dataset. Throughout the training process, visualizations and checkpoints are saved to disk (and optionally [wandb][wandb]) at a predifined interval. | see [obj_00001.gin][train_cfg] |
