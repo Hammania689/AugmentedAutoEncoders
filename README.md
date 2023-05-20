@@ -114,6 +114,19 @@ pip install -e .
 
 `bash .scripts/download_data.sh`
 
+## Format of CAD models for FIT parts
+```angular
+.
+└── data
+    ├── fit_models
+        ├── 001_top_shell.ply
+        ├── 002_main_shell.ply
+        └── 003_insert_mold.ply
+    ├── t_less
+    ...
+    └──VOC2011_images
+```
+
 ## Run Commands 🏇🏿
 ```bash
 # train AAE for topshell
