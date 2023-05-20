@@ -1,0 +1,14 @@
+include './config/aae_fit.gin'
+#include './config/camera.gin'
+
+AugmentedAutoEncoder.cad_model_name = "002_main_shell"
+
+load_ycbrenderer_dataset.dis_dir = "./data/VOC2012_images"
+load_ycbrenderer_dataset.cfg_file = "./config/train/FIT/002_main_shell.yml"
+load_ycbrenderer_dataset.model_path = "./data"
+
+train_aae.num_workers = 0
+train_aae.batch_size = 64
+train_aae.num_train_iters = 200
+train_aae.cache_save_interval = 10
+train_aae.device = "cuda:0"
