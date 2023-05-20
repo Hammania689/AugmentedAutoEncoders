@@ -1,4 +1,4 @@
-include './config/aae.gin'
+include './config/aae_tless.gin'
 #include './config/camera.gin'
 
 AugmentedAutoEncoder.cad_model_name = "obj_01"
