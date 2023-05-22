@@ -1,0 +1,24 @@
+im_dim=128
+im_scale=0.2
+AugmentedAutoEncoder.code_dim = 128
+AugmentedAutoEncoder.im_dim = %im_dim
+AugmentedAutoEncoder.opt = @Adam
+AugmentedAutoEncoder.lr = 2E-4
+AugmentedAutoEncoder.loss = @BootstrapedMSEloss
+AugmentedAutoEncoder.wandb_entity = "hammania689"
+AugmentedAutoEncoder.log_to_wandb = False
+
+BootstrapedMSEloss.b_factor = 4
+
+
+train_aae.num_workers = 0
+train_aae.batch_size = 64
+train_aae.num_train_iters = 200
+train_aae.cache_save_interval = 1
+train_aae.device = "cuda:0"
+
+
+DistractorDataset.size_crop = (%im_dim, %im_dim)
+train_aae.im_dim = %im_dim
+train_aae.im_scale = %im_scale
+

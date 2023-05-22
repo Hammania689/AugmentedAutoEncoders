@@ -1,14 +1,19 @@
-include './config/aae_fit.gin'
-#include './config/camera.gin'
-
+include './config/aae.gin'
 AugmentedAutoEncoder.cad_model_name = "003_insert_mold"
 
-load_ycbrenderer_dataset.dis_dir = "./data/VOC2012_images"
-load_ycbrenderer_dataset.cfg_file = "./config/train/FIT/003_insert_mold.yml"
-load_ycbrenderer_dataset.model_path = "./data"
+train_aae.dis_dir = "./data/VOC2012_images"
+train_aae.cfg_file = "./config/train/FIT/003_insert_mold.yml"
+train_aae.model_path = "./data"
 
 train_aae.num_workers = 0
 train_aae.batch_size = 64
 train_aae.num_train_iters = 200
 train_aae.cache_save_interval = 1
 train_aae.device = "cuda:0"
+train_aae.renderer = @fit_multi_render_dataset
+
+# fit
+fit_multi_render_dataset.render_size = %im_dim
+fit_multi_render_dataset.output_size = (%im_dim, %im_dim)
+fit_multi_render_dataset.target_size = %im_dim
+fit_codebook_online_generator.output_size = (%im_dim, %im_dim)
