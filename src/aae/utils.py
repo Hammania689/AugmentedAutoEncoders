@@ -1,14 +1,19 @@
 import time
+from pathlib import Path
 
+import gin
+import numpy as np
+import torch
 
 class TimerManager(object):
 
     def __init__(self):
         self.name = None
         self._prev = []
-        self.reset()
+        self.clear_for_new_entry()
 
-    def reset(self):
+    def clear_for_new_entry(self):
+        self.name = None
         self._t_start = None
 
     def __call__(self, name):
@@ -43,5 +48,27 @@ class TimerManager(object):
         return (  f"{self.name}\n{'='*50}\n"
                 + f"Avg: {mu:{prec}} | std: {std:{prec}} | # of ticks {len(self._prev)}")
 
+
+
+
+    
+    
+def get_path_to_config(gin_path)-> str:
+    cur_path = Path().absolute()
+
+    start_path = cur_path
+    query_path = tuple()
+    for p in Path(gin_path).parts:
+        if p == '..':
+            start_path = start_path.parent
+        elif p == '.':
+            continue
+        else:
+            query_path += (p,)
+
+    query_path = "/".join(query_path)
+    
+    query_path = start_path / query_path
+    return str(query_path)
 
 
