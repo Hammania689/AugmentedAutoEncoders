@@ -511,7 +511,6 @@ class FITTensorRenderer:
 
     def load_objects(self, obj_paths, texture_paths, colors=[[0.9, 0, 0], [0.6, 0, 0], [0.3, 0, 0], [0.4, 0, 0]], tless=False):
         self.colors = colors
-
         for i in range(len(obj_paths)):
             self.load_object(obj_paths[i], texture_paths[i], tless=tless)
             self.instances.append(len(self.instances))
@@ -619,10 +618,10 @@ class FITTensorRenderer:
                     GL.glActiveTexture(GL.GL_TEXTURE0)
                     GL.glBindTexture(GL.GL_TEXTURE_2D, self.textures[self.instances[index]])
                     GL.glUniform1i(self.texUnitUniform, 0)
-                    # Activate array
-                    GL.glBindVertexArray(self.VAOs[self.instances[index]])
-                    # draw triangles
-                    GL.glDrawElements(GL.GL_TRIANGLES, self.faces[self.instances[index]].size, GL.GL_UNSIGNED_INT, self.faces[self.instances[index]])
+                # Activate array
+                GL.glBindVertexArray(self.VAOs[self.instances[index]])
+                # draw triangles
+                GL.glDrawElements(GL.GL_TRIANGLES, self.faces[self.instances[index]].size, GL.GL_UNSIGNED_INT, self.faces[self.instances[index]])
             finally:
                 GL.glBindVertexArray(0)
                 GL.glUseProgram(0)
@@ -795,84 +794,84 @@ class FITTensorRenderer:
         centers = centers[:, ::-1]  # in y, x order
         return centers
 
-# if __name__ == '__main__':
-#     w = 640
-#     h = 480
+if __name__ == '__main__':
+    w = 640
+    h = 480
 
-#     renderer = FITTensorRenderer(w, h, render_marker=False)
-#     models = [
-#         "002_main_shell",
-#     ]
+    renderer = FITTensorRenderer(w, h, render_marker=False)
+    models = [
+        "002_main_shell",
+    ]
 
-#     from pathlib import Path
-#     # obj_paths = ['./cad_models/fit_models/{}/texture-less.obj'.format(item) for item in models]
-#     # obj_paths = ['./cad_models/fit_models/UT12123-1A60Q-7H/mainshell/mainshell.obj']
-#     obj_paths = ['/data/ham/BlenderProc2/cobot/models/topshell.obj']
-#     # obj_paths = ['./cad_models/fit_models/{}/texture-less.ply'.format(item) for item in models]
-#     # texture_paths = [f'./cad_models/fit_models/{item}/texture.png' for item in models]
-#     # texture_paths = list(Path('./cad_models/fit_models/UT12123-1A60Q-7H/mainshell/main_Bake1_PBR_Diffuse.png').rglob('*.png'))
-#     # texture_paths = ['./cad_models/fit_models/UT12123-1A60Q-7H/mainshell/main_Bake1_PBR_Diffuse.png']
-#     texture_paths = ['/home/ham/GithubWorkspace/POSERBPF_2.0/pose_estimation/poserbpf/cad_models/fit_models/lightbulb_01_4k.blend/SimpleBake_Bakes/mainshell_Bake1_PBR_Specular.png']
-#     # texture_paths = [f'./cad_models/fit_models/{item}/texture.png' for item in models]
-#     renderer.load_objects(obj_paths, texture_paths)
+    from pathlib import Path
+    # obj_paths = ['./cad_models/fit_models/{}/texture-less.obj'.format(item) for item in models]
+    # obj_paths = ['./cad_models/fit_models/UT12123-1A60Q-7H/mainshell/mainshell.obj']
+    obj_paths = ['/data/ham/BlenderProc2/cobot/models/topshell.obj']
+    # obj_paths = ['./cad_models/fit_models/{}/texture-less.ply'.format(item) for item in models]
+    # texture_paths = [f'./cad_models/fit_models/{item}/texture.png' for item in models]
+    # texture_paths = list(Path('./cad_models/fit_models/UT12123-1A60Q-7H/mainshell/main_Bake1_PBR_Diffuse.png').rglob('*.png'))
+    # texture_paths = ['./cad_models/fit_models/UT12123-1A60Q-7H/mainshell/main_Bake1_PBR_Diffuse.png']
+    texture_paths = ['/home/ham/GithubWorkspace/POSERBPF_2.0/pose_estimation/poserbpf/cad_models/fit_models/lightbulb_01_4k.blend/SimpleBake_Bakes/mainshell_Bake1_PBR_Specular.png']
+    # texture_paths = [f'./cad_models/fit_models/{item}/texture.png' for item in models]
+    renderer.load_objects(obj_paths, texture_paths)
 
-#     # mat = pose2mat(pose)
-#     pose = np.array([0, 0, 0.9, 0, 0, 1, 1])
-#     # pose2 = np.array([0, -0.1, 0.05, 0.6582951, 0.03479896, -0.036391996, -0.75107396])
-#     # pose3 = np.array([0, 0.02, 0.02, -0.40458265, -0.036644224, -0.6464779, 0.64578354])
+    # mat = pose2mat(pose)
+    pose = np.array([0, 0, 0.9, 0, 0, 1, 1])
+    # pose2 = np.array([0, -0.1, 0.05, 0.6582951, 0.03479896, -0.036391996, -0.75107396])
+    # pose3 = np.array([0, 0.02, 0.02, -0.40458265, -0.036644224, -0.6464779, 0.64578354])
 
-#     theta = 0
-#     phi = 0
-#     psi = 0
-#     r = 1
-#     cam_pos = [np.sin(theta) * np.cos(phi) * r, np.sin(phi) * r, np.cos(theta) * np.cos(phi) * r]
-#     renderer.set_camera(cam_pos, [0, 0, 0], [0, 1, 0])
-#     renderer.set_fov(40)
-#     renderer.set_poses([pose])
-#     renderer.set_light_pos(cam_pos)
-#     # renderer.set_light_color([1.5, 1.5, 1.5])
-#     renderer.set_light_color([15, 15, 15])
+    theta = 0
+    phi = 0
+    psi = 0
+    r = 1
+    cam_pos = [np.sin(theta) * np.cos(phi) * r, np.sin(phi) * r, np.cos(theta) * np.cos(phi) * r]
+    renderer.set_camera(cam_pos, [0, 0, 0], [0, 1, 0])
+    renderer.set_fov(40)
+    renderer.set_poses([pose])
+    renderer.set_light_pos(cam_pos)
+    # renderer.set_light_color([1.5, 1.5, 1.5])
+    renderer.set_light_color([15, 15, 15])
 
-#     tensor = torch.cuda.FloatTensor(h, w, 4)
-#     tensor2 = torch.cuda.FloatTensor(h, w, 4)
-#     pc_tensor = torch.cuda.FloatTensor(h, w, 4)
+    tensor = torch.cuda.FloatTensor(h, w, 4)
+    tensor2 = torch.cuda.FloatTensor(h, w, 4)
+    pc_tensor = torch.cuda.FloatTensor(h, w, 4)
 
-#     while True:
-#         renderer.render([0], tensor, seg_tensor=tensor2, pc2_tensor=pc_tensor)
+    while True:
+        renderer.render([0], tensor, seg_tensor=tensor2, pc2_tensor=pc_tensor)
 
-#         img_np = tensor.flip(0).data.cpu().numpy().reshape(h, w, 4)
-#         img_np2 = tensor2.flip(0).data.cpu().numpy().reshape(h, w, 4)
-#         img_pc = pc_tensor.flip(0).data.cpu().numpy().reshape(h, w, 4)
+        img_np = tensor.flip(0).data.cpu().numpy().reshape(h, w, 4)
+        img_np2 = tensor2.flip(0).data.cpu().numpy().reshape(h, w, 4)
+        img_pc = pc_tensor.flip(0).data.cpu().numpy().reshape(h, w, 4)
 
-#         img_disp = img_np[:, :, :3]
+        img_disp = img_np[:, :, :3]
 
-#         if len(sys.argv) > 2 and sys.argv[2] == 'headless':
-#             # print(np.mean(frame[0]))
-#             theta += 0.001
-#             if theta > 1: break
-#         else:
-#             cv2.imshow('test', cv2.cvtColor(img_disp, cv2.COLOR_RGB2BGR))
-#             q = cv2.waitKey(16)
-#             if q == ord('w'):
-#                 phi += 0.1
-#             elif q == ord('s'):
-#                 phi -= 0.1
-#             elif q == ord('a'):
-#                 theta -= 0.1
-#             elif q == ord('d'):
-#                 theta += 0.1
-#             elif q == ord('n'):
-#                 r -= 0.1
-#             elif q == ord('m'):
-#                 r += 0.1
-#             elif q == ord('p'):
-#                 Image.fromarray((img_np[:, :, :3] * 255).astype(np.uint8)).save('test.png')
-#             elif q == ord('q'):
-#                 break
+        if len(sys.argv) > 2 and sys.argv[2] == 'headless':
+            # print(np.mean(frame[0]))
+            theta += 0.001
+            if theta > 1: break
+        else:
+            cv2.imshow('test', cv2.cvtColor(img_disp, cv2.COLOR_RGB2BGR))
+            q = cv2.waitKey(16)
+            if q == ord('w'):
+                phi += 0.1
+            elif q == ord('s'):
+                phi -= 0.1
+            elif q == ord('a'):
+                theta -= 0.1
+            elif q == ord('d'):
+                theta += 0.1
+            elif q == ord('n'):
+                r -= 0.1
+            elif q == ord('m'):
+                r += 0.1
+            elif q == ord('p'):
+                Image.fromarray((img_np[:, :, :3] * 255).astype(np.uint8)).save('test.png')
+            elif q == ord('q'):
+                break
 
-#             # print(renderer.get_poses())
-#         cam_pos = [np.sin(theta) * np.cos(phi) * r, np.sin(phi) * r, np.cos(theta) * np.cos(phi) * r]
-#         renderer.set_camera(cam_pos, [0, 0, 0], [0, 1, 0])
-#         renderer.set_light_pos(cam_pos)
+            # print(renderer.get_poses())
+        cam_pos = [np.sin(theta) * np.cos(phi) * r, np.sin(phi) * r, np.cos(theta) * np.cos(phi) * r]
+        renderer.set_camera(cam_pos, [0, 0, 0], [0, 1, 0])
+        renderer.set_light_pos(cam_pos)
 
-#     renderer.release()
+    renderer.release()

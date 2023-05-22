@@ -18,35 +18,17 @@ import glob
 from src.datasets.render_ycb_dataset import *
 from src.ycb_render.fit_renderer_tensor import *
 import imgaug.augmenters as iaa
+
 import gin
-
-def get_path_to_config(gin_path)-> str:
-    cur_path = Path(__file__).absolute().parent
-
-    start_path = cur_path
-    query_path = tuple()
-    for p in Path(gin_path).parts:
-        if p == '..':
-            start_path = start_path.parent
-        elif p == '.':
-            continue
-        else:
-            query_path += (p,)
-
-    query_path = "/".join(query_path)
-    
-    query_path = start_path / query_path
-    return str(query_path)
 
 @gin.configurable
 class fit_multi_render_dataset(torch.utils.data.Dataset):
-    def __init__(self, model_dir, model_names, renderer=FITTensorRenderer,render_size=gin.REQUIRED, output_size=gin.REQUIRED,
+    def __init__(self, model_dir, model_names, renderer=FITTensorRenderer, render_size=gin.REQUIRED, output_size=gin.REQUIRED,
                  target_size=gin.REQUIRED,
                  chrom_rand_level=cfg.TRAIN.CHM_RAND_LEVEL):
 
-        self._name = 'fit_syn'
         self.render_size = render_size
-        self.renderer = renderer(self.render_size, self.render_size)
+        self.renderer = FITTensorRenderer(self.render_size, self.render_size)
 
         self.h = render_size
         self.w = render_size
@@ -56,17 +38,17 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
         self.target_size = target_size
         self.use_occlusion = cfg.TRAIN.USE_OCCLUSION
 
-        # class_colors_all = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255),
-        #                     (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128),
-        #                     (64, 0, 0), (0, 64, 0), (0, 0, 64), (64, 64, 0), (64, 0, 64), (0, 64, 64),
-        #                     (155, 0, 0), (0, 155, 0), (0, 0, 155), (155, 155, 0), (155, 0, 155), (0, 155, 155),
-        #                     (200, 0, 0), (0, 200, 0), (0, 0, 200), (200, 200, 0),
-        #                     (200, 0, 200), (0, 200, 200)
-        #                     ]
+        class_txt = './datasets/fit_classes.txt'
+        class_colors_all = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255),
+                            (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128),
+                            (64, 0, 0), (0, 64, 0), (0, 0, 64), (64, 64, 0), (64, 0, 64), (0, 64, 64),
+                            (155, 0, 0), (0, 155, 0), (0, 0, 155), (155, 155, 0), (155, 0, 155), (0, 155, 155),
+                            (200, 0, 0), (0, 200, 0), (0, 0, 200), (200, 200, 0),
+                            (200, 0, 200), (0, 200, 200)
+                            ]
 
         # load all the models
         if self.use_occlusion:
-            class_txt = './datasets/fit_classes.txt'
             with open(class_txt, 'r') as class_name_file:
                 class_names_all = class_name_file.read().split('\n')
                 for class_name in class_names_all:
@@ -74,9 +56,9 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
                         self.models.append(class_name)
             self.n_occluder = cfg.TRAIN.N_OCCLUDERS
 
-        '''
+
         # NOTE: use for the legacy part builds
-        obj_paths = ['{}/fit_models/{}/texture-less.ply'.format(model_dir, item) for item in self.models]
+        obj_paths = ['{}/fit_models/{}.ply'.format(model_dir, item) for item in self.models]
         texture_paths = ['' for cls in self.models]
 
         # NOTE: use for new part builds
@@ -90,7 +72,6 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
                                             render_size/2.0, render_size/2.0, znear=0.01, zfar=5)
         self.renderer.set_camera_default()
         self.renderer.set_light_pos([0, 0, 0])
-        '''
 
         # put in the configuration file
         self.lb_shift = cfg.TRAIN.SHIFT_MIN
@@ -109,7 +90,6 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
         # _, self.pose_list = torch.load('./data_files/poses_train.pth')
         self.pose_list = torch.load('./config/poses.npy')
 
-
         # normalized coordinate for depth
         self.embed_depth = cfg.TRAIN.DEPTH_EMBEDDING
         self.use_normalize_depth = cfg.TRAIN.NORMALIZE_DEPTH
@@ -120,14 +100,13 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
             bbox_sz = 2 * cfg.TRAIN.U0 / cfg.TRAIN.FU * render_dist
             self.bbox_3d_sz_list.append(bbox_sz)
 
-        # Data Augmentation
         self.dropout_seq = iaa.Sequential([
-                                            # iaa.Multiply((0.25, 1.5)),
-                                            # iaa.Invert(0.2),
-                                            # iaa.AdditiveGaussianNoise(scale=(0, 0.03*255)),
-                                            iaa.GaussianBlur(sigma=(0.0, 3.0)),
-                                            iaa.CoarseDropout(p=(0, 0.4), size_percent=(0.05, 0.25)),
-                                            iaa.Cutout(fill_mode="gaussian", fill_per_channel=True)
+                                            iaa.Multiply((0.25, 1.5)),
+                                            iaa.Invert(0.2),
+                                            iaa.GaussianBlur(sigma=(0.0, 2.0)),
+                                            iaa.CoarseDropout(p=(0, 0.5), size_percent=(0.05, 0.30)),
+                                            iaa.AdditiveGaussianNoise(scale=(0, 0.2*255)),
+                                            iaa.Cutout(fill_mode="constant", cval=(0, 255), fill_per_channel=0.3),
                                             ])
 
     def __getitem__(self, image_index):
@@ -165,7 +144,6 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
         # add noise to the input image
         image = add_noise_cuda(image)
         image = torch.clamp(image, min=0.0, max=1.0)
-        image = torch.from_numpy(self.dropout_seq(images=image.unsqueeze(0).cpu().numpy())[0]).cuda()
 
         depth_input = add_noise_cuda(depth_input, normalize=self.use_normalize_depth)
         # add noise to the input depth
@@ -203,7 +181,6 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
     def load(self, index):
         instance = random.sample(set(list(range(0, len(self.main_models)))), 1)
         self.renderer.instances = instance
-       
         render_dist = cfg.TRAIN.RENDER_DIST[instance[0]]
         bbox_3d_sz = self.bbox_3d_sz_list[instance[0]]
 
@@ -231,9 +208,7 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
                 poses[i_ocr+1, 3:] = euler2quat(np.random.uniform(-np.pi, np.pi),
                                                 np.random.uniform(-np.pi, np.pi),
                                                 np.random.uniform(-np.pi, np.pi))
-        else:
-            self.renderer.is_textured = [False]
-            self.renderer.VAOs = [0]
+
 
         theta = np.random.uniform(-np.pi/2, np.pi/2, size=(3,))
         phi = np.random.uniform(0, np.pi/2, size=(3,))
@@ -264,7 +239,6 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
 
         cls_indexes = range(len(self.renderer.instances))
         self.renderer.render(cls_indexes, frames_cuda, seg_cuda, pc2_tensor=pc_cuda)
-        
         frames_cuda = frames_cuda.flip(0)
         seg_cuda = seg_cuda.flip(0)
         frames_cuda = frames_cuda[:, :, :3]  # get rid of normalization for adding noise
@@ -316,11 +290,10 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
 # render on the fly
 @gin.configurable
 class fit_codebook_online_generator(torch.utils.data.Dataset):
-    def __init__(self, model_dir, model_names, render_dist, output_size=gin.REQUIRED, gpu_id=0,ts=15, pose_list_path='./config/poses.npy'):
-        H, W = output_size
-        self.renderer = FITTensorRenderer(H, W, gpu_id=gpu_id)
-        self.h = H
-        self.w = W
+    def __init__(self, model_dir, model_names, render_dist, output_size=(128, 128), gpu_id=0,ts=15, cfg=cfg):
+        self.renderer = FITTensorRenderer(128, 128, gpu_id=gpu_id)
+        self.h = 128
+        self.w = 128
         self.models = model_names
         obj_paths = ['{}/fit_models/{}.ply'.format(model_dir, item) for item in self.models]
         texture_paths = ['' for cls in self.models]
@@ -330,7 +303,10 @@ class fit_codebook_online_generator(torch.utils.data.Dataset):
 
         fu = cfg.TRAIN.FU
         fv = cfg.TRAIN.FV
-        self.renderer.set_projection_matrix(self.w, self.h, fu, fv, W/2, H/2, znear=0.01, zfar=5)
+        u0 = 64 # cfg.PF.U0 / 640 * 128
+        v0 = 64 # cfg.PF.V0 / 480 * 128
+
+        self.renderer.set_projection_matrix(self.w, self.h, fu, fv, u0, v0, znear=0.01, zfar=5)
         
 
         self.renderer.set_light_pos([0, 0, 0])
@@ -342,7 +318,7 @@ class fit_codebook_online_generator(torch.utils.data.Dataset):
 
         self.bbox_sz = 2 * cfg.TRAIN.U0 / cfg.TRAIN.FU * render_dist
 
-        self.pose_list = torch.load(pose_list_path)
+        self.pose_list = torch.load('./data_files/poses_codebook.pth')
 
         self.use_normalize_depth = cfg.TRAIN.NORMALIZE_DEPTH
 
@@ -409,7 +385,6 @@ class fit_codebook_online_generator(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.pose_list)
-
 
 
 
