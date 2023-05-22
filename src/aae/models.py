@@ -189,6 +189,11 @@ class AugmentedAutoEncoder(nn.Module):
         self.encoder = Encoder(code_dim, im_dim)
         self.decoder = Decoder(code_dim, im_dim)
 
+        if torch.cuda.device_count() > 1:
+            print("Let's use", torch.cuda.device_count(), "GPUs!")
+            self.encoder = nn.DataParallel(self.encoder)
+            self.decoder = nn.DataParallel(self.decoder)
+
 
         self.opt = opt(self.parameters(), lr)
         self.loss = loss()
