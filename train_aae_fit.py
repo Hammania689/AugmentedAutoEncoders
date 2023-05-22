@@ -76,35 +76,8 @@ def load_ycbrenderer_dataset(dis_dir:     str=gin.REQUIRED,
     print(cfg.TRAIN.RENDER_SZ)
     print(cfg.TRAIN.INPUT_IM_SIZE)
 
-    # set up render
-    models = cfg.TRAIN.OBJECTS[:]
-    renderer = FITTensorRenderer(cfg.TRAIN.RENDER_SZ, cfg.TRAIN.RENDER_SZ)
-    if cfg.TRAIN.USE_OCCLUSION:
-        with open('./datasets/fit_classes.txt', 'r') as class_name_file:
-            class_names_all = class_name_file.read().split('\n')
-            for class_name in class_names_all:
-                if class_name not in models:
-                    models.append(class_name)
-
-        class_colors_all = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255),
-                            (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128),
-                            (64, 0, 0), (0, 64, 0), (0, 0, 64), (64, 64, 0), (64, 0, 64), (0, 64, 64),
-                            (155, 0, 0), (0, 155, 0), (0, 0, 155), (155, 155, 0), (155, 0, 155), (0, 155, 155),
-                            (200, 0, 0), (0, 200, 0), (0, 0, 200), (200, 200, 0),
-                            (200, 0, 200), (0, 200, 200)
-                            ]
-
-
-        obj_paths = ['{}/fit_models/{}.ply'.format(model_path, item) for item in models]
-        texture_paths = ['' for cls in models]
-        renderer.load_objects(obj_paths, texture_paths, class_colors_all)
-        renderer.set_projection_matrix(cfg.TRAIN.RENDER_SZ, cfg.TRAIN.RENDER_SZ, cfg.TRAIN.FU, cfg.TRAIN.FV,
-                                       cfg.TRAIN.RENDER_SZ/2.0, cfg.TRAIN.RENDER_SZ/2.0, 0.01, 10)
-        renderer.set_camera_default()
-        renderer.set_light_pos([0, 0, 0])
-
     # synthetic dataset
-    dataset_train = fit_multi_render_dataset(model_path, cfg.TRAIN.OBJECTS, renderer,
+    dataset_train = fit_multi_render_dataset(model_path, cfg.TRAIN.OBJECTS,
                                              render_size=cfg.TRAIN.RENDER_SZ,
                                              output_size=cfg.TRAIN.INPUT_IM_SIZE)
 

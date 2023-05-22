@@ -40,13 +40,13 @@ def get_path_to_config(gin_path)-> str:
 
 @gin.configurable
 class fit_multi_render_dataset(torch.utils.data.Dataset):
-    def __init__(self, model_dir, model_names, renderer,render_size=gin.REQUIRED, output_size=gin.REQUIRED,
+    def __init__(self, model_dir, model_names, renderer=FITTensorRenderer,render_size=gin.REQUIRED, output_size=gin.REQUIRED,
                  target_size=gin.REQUIRED,
                  chrom_rand_level=cfg.TRAIN.CHM_RAND_LEVEL):
 
         self._name = 'fit_syn'
         self.render_size = render_size
-        self.renderer = renderer
+        self.renderer = renderer(self.render_size, self.render_size)
 
         self.h = render_size
         self.w = render_size
