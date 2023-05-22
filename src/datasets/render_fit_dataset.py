@@ -100,14 +100,20 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
             bbox_sz = 2 * cfg.TRAIN.U0 / cfg.TRAIN.FU * render_dist
             self.bbox_3d_sz_list.append(bbox_sz)
 
+        # NOTE: Copied and further tuned from original AAE repo (see https://github.com/DLR-RM/AugmentedAutoencoder/blob/9f0a56f622fabf6200d9f034fcb2eef106997118/auto_pose/ae/cfg/train_template.cfg#L26)
+        # DO NOT perform any geometric augmentations (e.g. flips, transformations) as it will break the ROI align operation
         self.dropout_seq = iaa.Sequential([
-                                            iaa.Multiply((0.25, 1.5)),
-                                            iaa.Invert(0.2),
-                                            iaa.GaussianBlur(sigma=(0.0, 2.0)),
-                                            iaa.CoarseDropout(p=(0, 0.5), size_percent=(0.05, 0.30)),
-                                            iaa.AdditiveGaussianNoise(scale=(0, 0.2*255)),
-                                            iaa.Cutout(fill_mode="constant", cval=(0, 255), fill_per_channel=0.3),
-                                            ])
+                        #Sometimes(0.5, PerspectiveTransform(0.05)),
+                        #Sometimes(0.5, CropAndPad(percent=(-0.05, 0.1))),
+                        # iaa.Sometimes(0.5, iaa.Affine(scale=(1.0, 1.2))),
+                        iaa.Sometimes(0.5, iaa.CoarseDropout( p=0.3, size_percent=0.2) ),
+                        iaa.Sometimes(0.5, iaa.GaussianBlur(1.2*np.random.rand())),
+                        iaa.Sometimes(0.5, iaa.Add((-55/255, 55/255), per_channel=0.6)),
+                        # iaa.Sometimes(0.3, iaa.Invert(0.2, per_channel=0.05)),
+                        iaa.Sometimes(0.5, iaa.Multiply((0.6, 1.4), per_channel=0.5)),
+                        iaa.Sometimes(0.5, iaa.Multiply((0.6, 1.4))),
+                        iaa.Sometimes(0.5, iaa.ContrastNormalization((0.5, 2.2), per_channel=0.3))
+                        ], random_order=False)
 
     def __getitem__(self, image_index):
 
@@ -144,6 +150,8 @@ class fit_multi_render_dataset(torch.utils.data.Dataset):
         # add noise to the input image
         image = add_noise_cuda(image)
         image = torch.clamp(image, min=0.0, max=1.0)
+        
+        image = torch.from_numpy(self.dropout_seq(images=image.unsqueeze(0).cpu().numpy())[0]).cuda()
 
         depth_input = add_noise_cuda(depth_input, normalize=self.use_normalize_depth)
         # add noise to the input depth
